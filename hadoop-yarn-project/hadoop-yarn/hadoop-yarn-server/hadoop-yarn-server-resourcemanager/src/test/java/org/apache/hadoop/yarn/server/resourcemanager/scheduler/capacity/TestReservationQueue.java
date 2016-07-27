@@ -62,7 +62,7 @@ public class TestReservationQueue {
     when(csContext.getClusterResource()).thenReturn(
         Resources.createResource(100 * 16 * GB, 100 * 32));
     when(csContext.getResourceCalculator()).thenReturn(resourceCalculator);
-
+    
     RMContext mockRMContext = TestUtils.getMockRMContext();
     when(csContext.getRMContext()).thenReturn(mockRMContext);
 
@@ -78,7 +78,7 @@ public class TestReservationQueue {
     assertEquals(reservationQueue.maxApplicationsPerUser, DEF_MAX_APPS);
   }
 
-  public void validateUserAmResourceLimit(ReservationQueue queue,
+  private void validateUserAmResourceLimit(ReservationQueue queue,
       ResourceCalculator calculator, Resource capacityResource,
       float capacity) {
     Resource userAmResourceLimit = queue.getUserAMResourceLimit();
@@ -89,6 +89,12 @@ public class TestReservationQueue {
         expectedUserAmResourceLimit) == 0);
   }
 
+  private void updateAMResourceLimit(ReservationQueue queue) {
+    for (String nodeLabel : queue.getNodeLabelsForQueue()) {
+      queue.calculateAndGetAMResourceLimitPerPartition(nodeLabel);
+    }
+  }
+
   @Test
   public void testAddSubtractCapacity() throws Exception {
 
@@ -96,19 +102,19 @@ public class TestReservationQueue {
     reservationQueue.setCapacity(1.0F);
     validateReservationQueue(1);
     reservationQueue.setEntitlement(new QueueEntitlement(0.9f, 1f));
-    reservationQueue.activateApplications();
+    updateAMResourceLimit(reservationQueue);
     validateUserAmResourceLimit(reservationQueue, resourceCalculator,
         csContext.getClusterResource(), 0.9f);
     validateReservationQueue(0.9);
 
     reservationQueue.setEntitlement(new QueueEntitlement(1f, 1f));
-    reservationQueue.activateApplications();
+    updateAMResourceLimit(reservationQueue);
     validateUserAmResourceLimit(reservationQueue, resourceCalculator,
         csContext.getClusterResource(), 1f);
     validateReservationQueue(1);
 
     reservationQueue.setEntitlement(new QueueEntitlement(0f, 1f));
-    reservationQueue.activateApplications();
+    updateAMResourceLimit(reservationQueue);
     validateUserAmResourceLimit(reservationQueue, resourceCalculator,
         csContext.getClusterResource(), 0f);
     validateReservationQueue(0);

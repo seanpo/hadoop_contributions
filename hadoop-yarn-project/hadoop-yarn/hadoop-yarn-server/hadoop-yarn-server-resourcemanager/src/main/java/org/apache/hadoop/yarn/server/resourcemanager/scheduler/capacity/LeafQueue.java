@@ -753,6 +753,7 @@ public class LeafQueue extends AbstractCSQueue {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   private void activateApplications() {
     try {
       writeLock.lock();
@@ -769,6 +770,9 @@ public class LeafQueue extends AbstractCSQueue {
 =======
   @VisibleForTesting
   public synchronized void activateApplications() {
+=======
+  private synchronized void activateApplications() {
+>>>>>>> removed uncessary publishing of activeapplication method
     // limit of allowed resource usage for application masters
     Map<String, Resource> userAmPartitionLimit =
         new HashMap<String, Resource>();

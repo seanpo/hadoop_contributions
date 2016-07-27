@@ -679,6 +679,34 @@ public class LeafQueue extends AbstractCSQueue {
   }
 
   public Resource calculateAndGetAMResourceLimitPerPartition(
+=======
+    /*
+     * The user am resource limit is based on the same approach as the user
+     * limit (as it should represent a subset of that). This means that it uses
+     * the absolute queue capacity (per partition) instead of the max and is
+     * modified by the userlimit and the userlimit factor as is the userlimit
+     */
+    float effectiveUserLimit = Math.max(userLimit / 100.0f,
+        1.0f / Math.max(getActiveUsersManager().getNumActiveUsers(), 1));
+
+    Resource queuePartitionResource = Resources.multiplyAndNormalizeUp(
+        resourceCalculator,
+        labelManager.getResourceByLabel(nodePartition, lastClusterResource),
+        queueCapacities.getAbsoluteCapacity(nodePartition), minimumAllocation);
+
+    Resource userAMLimit = Resources.multiplyAndNormalizeUp(resourceCalculator,
+        queuePartitionResource,
+        queueCapacities.getMaxAMResourcePercentage(nodePartition)
+            * effectiveUserLimit * userLimitFactor, minimumAllocation);
+
+    return Resources.lessThanOrEqual(resourceCalculator, lastClusterResource,
+        userAMLimit, getAMResourceLimitPerPartition(nodePartition))
+        ? userAMLimit
+        : getAMResourceLimitPerPartition(nodePartition);
+  }
+
+  public synchronized Resource calculateAndGetAMResourceLimitPerPartition(
+>>>>>>> Removed prints
       String nodePartition) {
     try {
       writeLock.lock();
@@ -725,6 +753,7 @@ public class LeafQueue extends AbstractCSQueue {
     }
   }
 
+<<<<<<< HEAD
   private void activateApplications() {
     try {
       writeLock.lock();
@@ -738,6 +767,13 @@ public class LeafQueue extends AbstractCSQueue {
       for (String nodePartition : getNodeLabelsForQueue()) {
         calculateAndGetAMResourceLimitPerPartition(nodePartition);
       }
+=======
+  @VisibleForTesting
+  public synchronized void activateApplications() {
+    // limit of allowed resource usage for application masters
+    Map<String, Resource> userAmPartitionLimit =
+        new HashMap<String, Resource>();
+>>>>>>> Removed prints
 
       for (Iterator<FiCaSchedulerApp> fsApp =
            getPendingAppsOrderingPolicy().getAssignmentIterator();

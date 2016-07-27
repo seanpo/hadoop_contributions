@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
+import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerDynamicEditException;
@@ -54,14 +55,14 @@ public class TestReservationQueue {
     csContext = mock(CapacitySchedulerContext.class);
     when(csContext.getConfiguration()).thenReturn(csConf);
     when(csContext.getConf()).thenReturn(conf);
-    when(csContext.getMinimumResourceCapability()).thenReturn(
-        Resources.createResource(GB, 1));
-    when(csContext.getMaximumResourceCapability()).thenReturn(
-        Resources.createResource(16 * GB, 32));
-    when(csContext.getClusterResource()).thenReturn(
-        Resources.createResource(100 * 16 * GB, 100 * 32));
+    when(csContext.getMinimumResourceCapability())
+        .thenReturn(Resources.createResource(GB, 1));
+    when(csContext.getMaximumResourceCapability())
+        .thenReturn(Resources.createResource(16 * GB, 32));
+    when(csContext.getClusterResource())
+        .thenReturn(Resources.createResource(100 * 16 * GB, 100 * 32));
     when(csContext.getResourceCalculator()).thenReturn(resourceCalculator);
-    
+
     RMContext mockRMContext = TestUtils.getMockRMContext();
     when(csContext.getRMContext()).thenReturn(mockRMContext);
 
@@ -77,6 +78,17 @@ public class TestReservationQueue {
     assertEquals(reservationQueue.maxApplicationsPerUser, DEF_MAX_APPS);
   }
 
+  public void validateUserAmResourceLimit(ReservationQueue queue,
+      ResourceCalculator calculator, Resource capacityResource,
+      float capacity) {
+    Resource userAmResourceLimit = queue.getUserAMResourceLimit();
+    capacity = capacity * csConf.getMaximumApplicationMasterResourcePercent();
+    Resource expectedUserAmResourceLimit = calculator.multiplyAndNormalizeUp(
+        capacityResource, capacity, Resource.newInstance(1, 1));
+    assertTrue(calculator.compare(capacityResource, userAmResourceLimit,
+        expectedUserAmResourceLimit) == 0);
+  }
+
   @Test
   public void testAddSubtractCapacity() throws Exception {
 
@@ -84,10 +96,21 @@ public class TestReservationQueue {
     reservationQueue.setCapacity(1.0F);
     validateReservationQueue(1);
     reservationQueue.setEntitlement(new QueueEntitlement(0.9f, 1f));
+    reservationQueue.activateApplications();
+    validateUserAmResourceLimit(reservationQueue, resourceCalculator,
+        csContext.getClusterResource(), 0.9f);
     validateReservationQueue(0.9);
+
     reservationQueue.setEntitlement(new QueueEntitlement(1f, 1f));
+    reservationQueue.activateApplications();
+    validateUserAmResourceLimit(reservationQueue, resourceCalculator,
+        csContext.getClusterResource(), 1f);
     validateReservationQueue(1);
+
     reservationQueue.setEntitlement(new QueueEntitlement(0f, 1f));
+    reservationQueue.activateApplications();
+    validateUserAmResourceLimit(reservationQueue, resourceCalculator,
+        csContext.getClusterResource(), 0f);
     validateReservationQueue(0);
 
     try {

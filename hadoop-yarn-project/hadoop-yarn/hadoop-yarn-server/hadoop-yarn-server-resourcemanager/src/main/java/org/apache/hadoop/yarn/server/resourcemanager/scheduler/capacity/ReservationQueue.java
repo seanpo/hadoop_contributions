@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystem;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceUsage;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerDynamicEditException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ public class ReservationQueue extends LeafQueue {
         parent.getMaxApplicationsForReservations(),
         parent.getMaxApplicationsPerUserForReservation());
     this.parent = parent;
+    inheritParentQueueConfiguration();
   }
 
   @Override
@@ -112,6 +114,17 @@ public class ReservationQueue extends LeafQueue {
     setUserLimitFactor(userLimitFactor);
     setMaxApplications(maxAppsForReservation);
     maxApplicationsPerUser = maxAppsPerUserForReservation;
+  }
+
+  private void inheritParentQueueConfiguration() {
+    QueueCapacities parentCapacities = parent.queueCapacities;
+    for (String label : parentCapacities.getExistingNodeLabels()) {
+      queueCapacities.setCapacity(label, parentCapacities.getCapacity(label));
+      queueCapacities.setMaximumCapacity(label,
+          parentCapacities.getMaximumCapacity(label));
+      queueCapacities.setMaxAMResourcePercentage(label,
+          parentCapacities.getMaxAMResourcePercentage(label));
+    }
   }
 
   @Override

@@ -698,7 +698,6 @@ public class LeafQueue extends AbstractCSQueue {
         queuePartitionResource,
         queueCapacities.getMaxAMResourcePercentage(nodePartition)
             * effectiveUserLimit * userLimitFactor, minimumAllocation);
-
     return Resources.lessThanOrEqual(resourceCalculator, lastClusterResource,
         userAMLimit, getAMResourceLimitPerPartition(nodePartition))
         ? userAMLimit

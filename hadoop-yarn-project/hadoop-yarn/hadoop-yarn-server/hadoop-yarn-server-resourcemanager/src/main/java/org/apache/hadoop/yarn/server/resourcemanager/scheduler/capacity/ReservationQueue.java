@@ -118,7 +118,8 @@ public class ReservationQueue extends LeafQueue {
   private void inheritParentQueueConfiguration() {
     QueueCapacities parentCapacities = parent.queueCapacities;
     for (String label : parentCapacities.getExistingNodeLabels()) {
-      queueCapacities.setCapacity(label, parentCapacities.getCapacity(label));
+      queueCapacities.setAbsoluteMaximumCapacity(
+          parentCapacities.getAbsoluteUsedCapacity(label));
       queueCapacities.setMaximumCapacity(label,
           parentCapacities.getMaximumCapacity(label));
       queueCapacities.setMaxAMResourcePercentage(label,

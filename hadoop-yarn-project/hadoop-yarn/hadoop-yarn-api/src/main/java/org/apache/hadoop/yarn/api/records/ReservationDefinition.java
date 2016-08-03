@@ -188,7 +188,7 @@ public abstract class ReservationDefinition {
    * non-recurring reservations are only compared with non-recurring
    * reservations. Likewise for recurring reservations.
    *
-   * @return int representing the priority of the reserved resource
+   * @return {@link Priority} representing the priority of the reserved resource
    *         allocation in the scheduler
    */
   @Public

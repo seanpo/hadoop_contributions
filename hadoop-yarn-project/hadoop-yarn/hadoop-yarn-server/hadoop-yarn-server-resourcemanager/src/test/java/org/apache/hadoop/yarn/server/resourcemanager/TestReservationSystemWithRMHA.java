@@ -213,7 +213,7 @@ public class TestReservationSystemWithRMHA extends RMHATestBase {
     long duration = 60000;
     long deadline = (long) (arrival + duration + 1500);
     return ReservationSystemTestUtil.createSimpleReservationRequest(
-      reservationId, 4, arrival, deadline, duration);
+      reservationId, 4, arrival, deadline, duration, 0);
   }
 
   private void validateReservation(Plan plan, ReservationId resId,

@@ -2174,7 +2174,8 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
     ReservationRequests reqs = ReservationRequests.newInstance(list, resInt);
     ReservationDefinition rDef =
         ReservationDefinition.newInstance(resInfo.getArrival(),
-            resInfo.getDeadline(), reqs, resInfo.getReservationName());
+            resInfo.getDeadline(), reqs, resInfo.getReservationName(),
+            resInfo.getPriority());
 
     ReservationId reservationId =
         ReservationId.parseReservationId(resContext.getReservationId());
@@ -2275,7 +2276,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
     ReservationRequests reqs = ReservationRequests.newInstance(list, resInt);
     ReservationDefinition rDef =
         ReservationDefinition.newInstance(resInfo.getArrival(),
-            resInfo.getDeadline(), reqs, resInfo.getReservationName());
+            resInfo.getDeadline(), reqs, resInfo.getReservationName(), resInfo.getPriority());
     ReservationUpdateRequest request = ReservationUpdateRequest.newInstance(
         rDef, ReservationId.parseReservationId(resContext.getReservationId()));
 

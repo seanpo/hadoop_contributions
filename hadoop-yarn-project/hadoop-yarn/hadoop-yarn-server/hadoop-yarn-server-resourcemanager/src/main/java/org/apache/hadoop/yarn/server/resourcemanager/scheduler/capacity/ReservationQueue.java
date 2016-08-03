@@ -37,8 +37,6 @@ public class ReservationQueue extends LeafQueue {
   private static final Logger LOG = LoggerFactory
       .getLogger(ReservationQueue.class);
 
-  private PlanQueue parent;
-
   public ReservationQueue(CapacitySchedulerContext cs, String queueName,
       PlanQueue parent) throws IOException {
     super(cs, queueName, parent, null);
@@ -47,8 +45,6 @@ public class ReservationQueue extends LeafQueue {
         parent.getUserLimitFactor(),
         parent.getMaxApplicationsForReservations(),
         parent.getMaxApplicationsPerUserForReservation());
-    this.parent = parent;
-    inheritParentQueueConfiguration();
   }
 
   @Override
@@ -67,6 +63,7 @@ public class ReservationQueue extends LeafQueue {
       CSQueueUtils.updateQueueStatistics(resourceCalculator, clusterResource,
           this, labelManager, null);
 
+      PlanQueue parent = (PlanQueue) getParent();
       updateQuotas(parent.getUserLimitForReservation(),
           parent.getUserLimitFactor(),
           parent.getMaxApplicationsForReservations(),
@@ -115,21 +112,11 @@ public class ReservationQueue extends LeafQueue {
     maxApplicationsPerUser = maxAppsPerUserForReservation;
   }
 
-  private void inheritParentQueueConfiguration() {
-    QueueCapacities parentCapacities = parent.queueCapacities;
-    for (String label : parentCapacities.getExistingNodeLabels()) {
-      queueCapacities.setAbsoluteMaximumCapacity(
-          parentCapacities.getAbsoluteUsedCapacity(label));
-      queueCapacities.setMaximumCapacity(label,
-          parentCapacities.getMaximumCapacity(label));
-      queueCapacities.setMaxAMResourcePercentage(label,
-          parentCapacities.getMaxAMResourcePercentage(label));
-    }
-  }
-
   @Override
   protected void setupConfigurableCapacities() {
-    CSQueueUtils.updateAndCheckCapacitiesByLabel(getQueuePath(),
-        queueCapacities, parent == null ? null : parent.getQueueCapacities());
+    CSQueue parent = getParent();
+    CSQueueUtils.loadUpdateAndCheckCapacities(parent.getQueuePath(),
+        csContext.getConfiguration(), queueCapacities,
+        parent == null ? null : parent.getQueueCapacities());
   }
 }

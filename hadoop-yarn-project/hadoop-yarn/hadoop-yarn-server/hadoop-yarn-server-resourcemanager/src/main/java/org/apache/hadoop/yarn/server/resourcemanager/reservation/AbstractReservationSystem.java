@@ -34,10 +34,12 @@ import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.Planner;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.PriorityReservationAgent;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.ReservationAgent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.QueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.security.ReservationsACLsManager;
 import org.apache.hadoop.yarn.util.Clock;
@@ -409,9 +411,15 @@ public abstract class AbstractReservationSystem extends AbstractService
     Resource maxAllocation = getMaxAllocation();
     ResourceCalculator rescCalc = getResourceCalculator();
     Resource totCap = getPlanQueueCapacity(planQueueName);
+    ReservationAgent agent = getAgent(planQueuePath);
+    if (conf.getBoolean(CapacitySchedulerConfiguration
+        .ENABLE_RESERVATION_PRIORITY, CapacitySchedulerConfiguration
+        .DEFAULT_ENABLE_RESERVATION_PRIORITY)) {
+      agent = getPriorityReservationAgent(planQueueName, agent);
+    }
     Plan plan =
         new InMemoryPlan(getRootQueueMetrics(), adPolicy,
-            getAgent(planQueuePath), totCap, planStepSize, rescCalc,
+            agent, totCap, planStepSize, rescCalc,
             minAllocation, maxAllocation, planQueueName,
             getReplanner(planQueuePath), getReservationSchedulerConfiguration()
             .getMoveOnExpiry(planQueuePath), rmContext);
@@ -449,19 +457,29 @@ public abstract class AbstractReservationSystem extends AbstractService
     String agentClassName = reservationConfig.getReservationAgent(queueName);
     LOG.info("Using Agent: " + agentClassName + " for queue: " + queueName);
     try {
-      Class<?> agentClazz = conf.getClassByName(agentClassName);
-      if (ReservationAgent.class.isAssignableFrom(agentClazz)) {
-        ReservationAgent resevertionAgent =
-            (ReservationAgent) agentClazz.newInstance();
-        resevertionAgent.init(conf);
-        return resevertionAgent;
-      } else {
-        throw new YarnRuntimeException("Class: " + agentClassName
-            + " not instance of " + ReservationAgent.class.getCanonicalName());
-      }
-    } catch (ClassNotFoundException | InstantiationException
-        | IllegalAccessException e) {
+      return (ReservationAgent) getObject(ReservationAgent.class,
+          agentClassName);
+    } catch (ClassNotFoundException e) {
       throw new YarnRuntimeException("Could not instantiate Agent: "
+          + agentClassName + " for queue: " + queueName, e);
+    }
+  }
+
+  protected ReservationAgent getPriorityReservationAgent(String queueName,
+        ReservationAgent workerAgent) {
+    ReservationSchedulerConfiguration reservationConfig =
+        getReservationSchedulerConfiguration();
+    String agentClassName = reservationConfig.getPriorityReservationAgent(
+        queueName);
+    LOG.info("Using Priority Reservation Agent: " + agentClassName + " for " +
+        "queue: " + queueName);
+    try {
+      PriorityReservationAgent agent = (PriorityReservationAgent) getObject(
+          PriorityReservationAgent.class, agentClassName);
+      agent.setAgent(workerAgent);
+      return agent;
+    } catch (ClassNotFoundException e) {
+      throw new YarnRuntimeException("Could not instantiate Priority Agent: "
           + agentClassName + " for queue: " + queueName, e);
     }
   }
@@ -474,19 +492,23 @@ public abstract class AbstractReservationSystem extends AbstractService
     LOG.info("Using AdmissionPolicy: " + admissionPolicyClassName
         + " for queue: " + queueName);
     try {
-      Class<?> admissionPolicyClazz =
-          conf.getClassByName(admissionPolicyClassName);
-      if (SharingPolicy.class.isAssignableFrom(admissionPolicyClazz)) {
-        return (SharingPolicy) ReflectionUtils.newInstance(
-            admissionPolicyClazz, conf);
-      } else {
-        throw new YarnRuntimeException("Class: " + admissionPolicyClassName
-            + " not instance of " + SharingPolicy.class.getCanonicalName());
-      }
+      return (SharingPolicy) getObject(SharingPolicy.class,
+          admissionPolicyClassName);
     } catch (ClassNotFoundException e) {
       throw new YarnRuntimeException("Could not instantiate AdmissionPolicy: "
           + admissionPolicyClassName + " for queue: " + queueName, e);
     }
+  }
+
+  protected Object getObject(Class baseClazz, String className) throws
+      ClassNotFoundException {
+      Class<?> clazz = conf.getClassByName(className);
+      if (baseClazz.isAssignableFrom(clazz)) {
+        return ReflectionUtils.newInstance(clazz, conf);
+      } else {
+        throw new YarnRuntimeException("Class: " + className
+            + " not instance of " + baseClazz.getCanonicalName());
+      }
   }
 
   public ReservationsACLsManager getReservationsACLsManager() {

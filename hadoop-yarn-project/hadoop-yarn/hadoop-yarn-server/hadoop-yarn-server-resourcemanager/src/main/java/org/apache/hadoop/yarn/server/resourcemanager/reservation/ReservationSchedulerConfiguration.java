@@ -40,6 +40,11 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
       "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.AlignedPlannerWithGreedy";
 
   @InterfaceAudience.Private
+  public static final String DEFAULT_PRIORITY_RESERVATION_AGENT_NAME =
+      "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning" +
+          ".SimplePriorityReservationAgent";
+
+  @InterfaceAudience.Private
   public static final String DEFAULT_RESERVATION_PLANNER_NAME =
       "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.SimpleCapacityReplanner";
 
@@ -130,6 +135,16 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
    */
   public String getReservationAgent(String queue) {
     return DEFAULT_RESERVATION_AGENT_NAME;
+  }
+
+  /**
+   * Gets the name of the {@code PriorityReservationAgent} class associated with
+   * the queue
+   * @param queue name of the queue
+   * @return the class name of the {@code PriorityReservationAgent}
+   */
+  public String getPriorityReservationAgent(String queue) {
+    return DEFAULT_PRIORITY_RESERVATION_AGENT_NAME;
   }
 
   /**

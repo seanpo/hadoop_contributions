@@ -20,29 +20,62 @@ package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.RLESparseResourceAllocation;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
+import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
+import org.apache.hadoop.yarn.util.resource.Resources;
 
-public class SimplePriorityReservationAgent implements ReservationAgent {
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
-  private ReservationAgent workerReservationAgent;
+public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
-  public SimplePriorityReservationAgent(ReservationAgent reservationAgent) {
-    workerReservationAgent = reservationAgent;
+  public SimplePriorityReservationAgent() {
   }
 
-  public boolean createReservation(ReservationId reservationId, String user,
-      Plan plan, ReservationDefinition contract) throws PlanningException {
+  public List<ReservationAllocation> accommodateForReservation(
+      ReservationId reservationId, String user, Plan plan,
+      ReservationDefinition contract) throws PlanningException {
 
+    Set<ReservationAllocation> reservations = plan.getAllReservations();
+    List<ReservationAllocation> yieldedReservations = new ArrayList<>();
+
+    for (ReservationAllocation reservation : reservations) {
+      if (reservation.getReservationDefinition().getPriority() < contract
+          .getPriority()) {
+        yieldedReservations.add(reservation);
+        plan.deleteReservation(reservation.getReservationId());
+      }
+    }
+
+    yieldedReservations.sort(new ReservationComparator());
+    return yieldedReservations;
   }
 
-  public boolean updateReservation(ReservationId reservationId, String user,
-      Plan plan, ReservationDefinition contract) throws PlanningException {
+  private class ReservationComparator
+      implements Comparator<ReservationAllocation> {
 
+    public int compare(ReservationAllocation reservationA,
+        ReservationAllocation reservationB) {
+      ReservationDefinition definitionA =
+          reservationA.getReservationDefinition();
+      ReservationDefinition definitionB =
+          reservationB.getReservationDefinition();
+      if (definitionA.getPriority() == definitionB.getPriority()) {
+        return compare(definitionA.getArrival(), definitionB.getArrival());
+      }
+      return compare(definitionA.getPriority(), definitionB.getPriority());
+    }
+
+    public int compare(long a, long b) {
+      return a > b ? 1 : (a < b ? -1 : 0);
+    }
   }
 
-  public boolean deleteReservation(ReservationId reservationId, String user,
-      Plan plan) throws PlanningException {
-    return workerReservationAgent.deleteReservation(reservationId, user, plan);
-  }
 }

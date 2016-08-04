@@ -179,11 +179,13 @@ public class ReservationSystemTestUtil {
 
   public static ReservationDefinition createSimpleReservationDefinition(
       long arrival, long deadline, long duration) {
-    return createSimpleReservationDefinition(arrival, deadline, duration, 1);
+    return createSimpleReservationDefinition(arrival, deadline, duration, 1,
+        0);
   }
 
   public static ReservationDefinition createSimpleReservationDefinition(
-      long arrival, long deadline, long duration, int parallelism) {
+      long arrival, long deadline, long duration, int parallelism,
+      int priority) {
     // create a request with a single atomic ask
     ReservationRequest r =
         ReservationRequest.newInstance(Resource.newInstance(1024, 1),
@@ -195,6 +197,7 @@ public class ReservationSystemTestUtil {
     rDef.setReservationRequests(reqs);
     rDef.setArrival(arrival);
     rDef.setDeadline(deadline);
+    rDef.setPriority(priority);
     return rDef;
   }
 

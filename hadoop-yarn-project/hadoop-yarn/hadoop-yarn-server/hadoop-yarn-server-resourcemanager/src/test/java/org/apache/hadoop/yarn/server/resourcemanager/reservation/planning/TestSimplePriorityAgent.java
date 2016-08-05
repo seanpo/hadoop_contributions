@@ -28,35 +28,22 @@ import org.apache.hadoop.yarn.api.records.impl.pb.ReservationRequestsPBImpl;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.CapacityOverTimePolicy;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryPlan;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReservationAllocation;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInterval;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemTestUtil;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.QueueMetrics;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
-import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.mortbay.log.Log;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class TestSimplePriorityAgent {
@@ -69,9 +56,8 @@ public class TestSimplePriorityAgent {
   Random rand = new Random();
   int numContainers = 100;
   long step;
-  boolean allocateLeft;
 
-  public TestSimplePriorityAgent(){
+  public TestSimplePriorityAgent() {
   }
 
   @Before
@@ -83,17 +69,16 @@ public class TestSimplePriorityAgent {
 
     // setting completely loose quotas
     long timeWindow = 1000000L;
-    Resource clusterCapacity = Resource.newInstance(numContainers * 1024,
-        numContainers);
+    Resource clusterCapacity =
+        Resource.newInstance(numContainers * 1024, numContainers);
     String reservationQ =
         ReservationSystemTestUtil.getFullReservationQueueName();
 
     float instConstraint = 100;
     float avgConstraint = 100;
 
-    ReservationSchedulerConfiguration conf =
-        ReservationSystemTestUtil.createConf(reservationQ, timeWindow,
-            instConstraint, avgConstraint);
+    ReservationSchedulerConfiguration conf = ReservationSystemTestUtil
+        .createConf(reservationQ, timeWindow, instConstraint, avgConstraint);
     CapacityOverTimePolicy policy = new CapacityOverTimePolicy();
     policy.init(reservationQ, conf);
 
@@ -102,7 +87,7 @@ public class TestSimplePriorityAgent {
     agent.setAgent(workerAgent);
 
     conf = ReservationSystemTestUtil.createConf(reservationQ, timeWindow,
-            instConstraint, avgConstraint);
+        instConstraint, avgConstraint);
     policy = new CapacityOverTimePolicy();
     policy.init(reservationQ, conf);
     step = 1000L;
@@ -117,73 +102,208 @@ public class TestSimplePriorityAgent {
   @SuppressWarnings("javadoc")
   @Test
   public void testSimple() throws PlanningException {
+    boolean result = submitReservation(1, numContainers / 2) != null;
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed if it can fit.", result);
+    assertTrue("The first reservation is expected to succeed.",
+        plan.getAllReservations().size() == 1);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testOnlySamePriorityNoFit() throws PlanningException {
+    submitReservation(1, numContainers / 2);
+    submitReservation(1, numContainers / 2);
+    boolean result = submitReservation(1, numContainers / 2) == null;
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should fail if it cannot fit and there are no "
+        + "other reservations that have a lower priority.", result);
+    assertTrue("The first two reservations are expected to succeed.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testLowerPriorityExistsNoFit() throws PlanningException {
+    ReservationId reservation1 = submitReservation(1, numContainers / 2);
+    submitReservation(2, numContainers / 2);
+    ReservationId reservation3 = submitReservation(3, numContainers / 2);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue("The lowest priority reservation should be removed.",
+        plan.getReservationById(reservation1) == null);
+    assertTrue("There should only be two reservations in the plan.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testMultipleLowerPriorityExistsNoFit() throws PlanningException {
+    ReservationId reservation1 = submitReservation(1, numContainers / 2);
+    ReservationId reservation2 = submitReservation(2, numContainers / 2);
+    ReservationId reservation3 = submitReservation(3, numContainers);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue("The two lowest priority reservations should be removed.",
+        plan.getReservationById(reservation1) == null);
+    assertTrue("The two lowest priority reservations should be removed.",
+        plan.getReservationById(reservation2) == null);
+    assertTrue("There should only be one reservation in the plan.",
+        plan.getAllReservations().size() == 1);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testReservationGetsRemovedInPriorityThenArrivalOrder()
+      throws PlanningException {
+    ReservationId reservation1 =
+        submitReservation(1, numContainers / 2, 3 * step, 7 * step, 4 * step);
+    submitReservation(1, numContainers / 2, step, 5 * step, 4 * step);
+    ReservationId reservation3 =
+        submitReservation(3, numContainers / 2, 2 * step, 6 * step, 4 * step);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue(
+        "The reservation with the lowest priority and highest arrival "
+            + "time should be removed.",
+        plan.getReservationById(reservation1) == null);
+    assertTrue("There should only be two reservations in the plan.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testReservationGetsRemovedInPriorityThenArrivalOrderUnlessNoFit()
+      throws PlanningException {
+    submitReservation(1, (int) (0.4 * numContainers), 3 * step, 7 * step,
+        4 * step);
+    // This should get removed despite the earlier arrival time because it
+    // cannot fit with the higher priority reservation.
+    ReservationId reservation2 = submitReservation(1,
+        (int) (0.6 * numContainers), step, 5 * step, 4 * step);
+    ReservationId reservation3 = submitReservation(3,
+        (int) (0.5 * numContainers), 2 * step, 6 * step, 4 * step);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue(
+        "The reservation with the lowest priority and highest arrival "
+            + "time should be removed.",
+        plan.getReservationById(reservation2) == null);
+    assertTrue("There should only be two reservations in the plan.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testOnlyLowerPriorityReservationsGetRemovedRegardlessOfStartTime()
+      throws PlanningException {
+    // Lower priority than reservation 3, but later start time than the
+    // second reservation.
+    submitReservation(2, numContainers / 2, 3 * step, 7 * step, 4 * step);
+
+    // Lowest priority, but earliest startTime.
+    ReservationId reservation2 =
+        submitReservation(1, numContainers / 2, step, 5 * step, 4 * step);
+    ReservationId reservation3 =
+        submitReservation(3, numContainers / 2, 2 * step, 6 * step, 4 * step);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue(
+        "The reservation with the lowest priority time should be removed "
+            + "regardless of the startTime.",
+        plan.getReservationById(reservation2) == null);
+    assertTrue("There should only be two reservations in the plan.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testOnlyLowerPriorityReservationsGetRemoved()
+      throws PlanningException {
+    submitReservation(4, numContainers / 2, 3 * step, 7 * step, 4 * step);
+    ReservationId reservation2 =
+        submitReservation(1, numContainers / 2, step, 5 * step, 4 * step);
+    ReservationId reservation3 =
+        submitReservation(3, numContainers / 2, 2 * step, 6 * step, 4 * step);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should succeed because lower priority "
+        + "reservations exist.", reservation3 != null);
+    assertTrue("The reservation with the lowest priority should be removed.",
+        plan.getReservationById(reservation2) == null);
+    assertTrue("There should only be two reservations in the plan.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testLowerPriorityExistsFit() throws PlanningException {
+    submitReservation(1, numContainers / 2);
+    boolean result = submitReservation(2, numContainers / 2) == null;
+
+    // validate results, we expect the second one to be accepted
+    assertFalse("Reservation should succeed if it can fit.", result);
+    assertTrue("The first two reservations are expected to succeed.",
+        plan.getAllReservations().size() == 2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testOnlyHigherPriorityNoFit() throws PlanningException {
+    submitReservation(2, numContainers / 2);
+    submitReservation(2, numContainers / 2);
+    boolean result = submitReservation(1, numContainers / 2) == null;
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation should fail if it cannot fit and there are no "
+        + "other reservations that have a lower priority.", result);
+    assertTrue("The first two reservations are expected to succeed",
+        plan.getAllReservations().size() == 2);
+  }
+
+  private ReservationId submitReservation(int priority, int containers) {
+    return submitReservation(priority, containers, step, 2 * step, step);
+  }
+
+  private ReservationId submitReservation(int priority, int containers,
+      long arrival, long deadline, long duration) {
     // create an ALL request, with an impossible combination, it should be
     // rejected, and allocation remain unchanged
     ReservationDefinition rr = new ReservationDefinitionPBImpl();
-    rr.setArrival(step);
-    rr.setDeadline(2*step);
+    rr.setArrival(arrival);
+    rr.setDeadline(deadline);
+    rr.setPriority(priority);
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ALL);
-    ReservationRequest r = ReservationRequest.newInstance(
-        Resource.newInstance(1024, 1), numContainers/2, 5, step);
+    ReservationRequest r = ReservationRequest
+        .newInstance(Resource.newInstance(1024, 1), containers, 1, duration);
 
-    List<ReservationRequest> list = new ArrayList<ReservationRequest>();
+    List<ReservationRequest> list = new ArrayList<>();
     list.add(r);
     reqs.setReservationResources(list);
     rr.setReservationRequests(reqs);
-    rr.setPriority(10);
 
-    ReservationId reservationID = ReservationSystemTestUtil
-        .getNewReservationId();
-    boolean result = false;
+    ReservationId reservationID =
+        ReservationSystemTestUtil.getNewReservationId();
     try {
       // submit to agent
-      result = agent.createReservation(reservationID, "u1", plan, rr);
+      agent.createReservation(reservationID, "u1", plan, rr);
+      return reservationID;
     } catch (PlanningException p) {
-      fail();
+      return null;
     }
-
-    // validate results, we expect the second one to be accepted
-    assertTrue("Agent-based allocation succeeded", result);
-    assertTrue("Agent-based allocation succeeded", plan.getAllReservations()
-        .size() == 1);
-
-    System.out.println("--------AFTER ALL IMPOSSIBLE ALLOCATION (queue: "
-        + reservationID + ")----------");
-    System.out.println(plan.toString());
-    System.out.println(plan.toCumulativeString());
-  }
-
-  @SuppressWarnings("javadoc")
-  @Test
-  public void testSamePriorityNoFit() throws PlanningException {
-  }
-
-  @SuppressWarnings("javadoc")
-  @Test
-  public void testLowerPriorityNoFit() throws PlanningException {
-  }
-
-  @SuppressWarnings("javadoc")
-  @Test
-  public void testLowerPriorityFit() throws PlanningException {
-  }
-
-  @SuppressWarnings("javadoc")
-  @Test
-  public void testHigherPriorityNoFit() throws PlanningException {
-  }
-
-  private boolean check(ReservationAllocation cs, long start, long end,
-      int containers, int mem, int cores) {
-
-    boolean res = true;
-    for (long i = start; i < end; i++) {
-      res = res
-          && Resources.equals(cs.getResourcesAtTime(i),
-              Resource.newInstance(mem * containers, cores * containers));
-    }
-    return res;
   }
 
 }

@@ -72,14 +72,22 @@ public abstract class PriorityReservationAgent implements ReservationAgent {
     try {
       return getAgent().createReservation(reservationId, user, plan, contract);
     } catch (PlanningException e) {
-      LOG.info("Reservation=[] could not be added even after removing lower " +
-          "priority reservations. Attempt to re-add the removed reservations.");
+      LOG.info("Reservation=[" + reservationId + "] could not be added even " +
+          "after removing lower priority reservations. Attempt to re-add the " +
+          "removed reservations.");
       throw e;
     } finally {
       // Add the reservations in the reverse order that they were removed.
       for (ReservationAllocation reservation : yieldedReservations) {
-        agent.createReservation(reservation.getReservationId(),
-            reservation.getUser(), plan, reservation.getReservationDefinition());
+        try {
+          agent.createReservation(reservation.getReservationId(),
+              reservation.getUser(), plan, reservation
+                  .getReservationDefinition());
+        } catch(PlanningException e) {
+          LOG.info("Reservation=[" + reservation.getReservationId() + "] was " +
+              "removed to make room for a higher priority reservation=[" +
+              reservationId + "].");
+        }
       }
     }
   }

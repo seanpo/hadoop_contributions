@@ -39,15 +39,15 @@ public abstract class PriorityReservationAgent implements ReservationAgent {
    * Accommodate for an incoming reservation by attempting to remove other
    * reservations in the queue.
    *
-   * @param reservationId the identifier of the reservation to be
-   *                      accommodated for.
+   * @param reservationId the identifier of the reservation to be accommodated
+   *          for.
    * @param user the user who the reservation belongs to
    * @param plan the Plan to which the reservation must be fitted
    * @param contract encapsulates the resources the user requires for his
    *          reservation
    *
-   * @return an ordered list of {@link ReservationAllocation} that were
-   * removed in order to fit the incoming reservation.
+   * @return an ordered list of {@link ReservationAllocation} that were removed
+   *         in order to fit the incoming reservation.
    * @throws PlanningException if the reservation cannot be fitted into the plan
    */
   public abstract List<ReservationAllocation> accommodateForReservation(
@@ -60,35 +60,24 @@ public abstract class PriorityReservationAgent implements ReservationAgent {
       agent.createReservation(reservationId, user, plan, contract);
       return true;
     } catch (PlanningException e) {
-      LOG.info("Encountered planning exception for reservation=[" +
-          reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]" +
-          " when creating the reservation. Attempt to accommodate for " +
-          "reservation by removing lower priority reservations. Exception=[" +
-          e.getMessage() + "]");
+      LOG.info("Encountered planning exception for reservation=["
+          + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
+          + " when creating the reservation. Attempt to accommodate for "
+          + "reservation by removing lower priority reservations. Exception=["
+          + e.getMessage() + "]");
     }
     List<ReservationAllocation> yieldedReservations =
         accommodateForReservation(reservationId, user, plan, contract);
 
     try {
-      return getAgent().createReservation(reservationId, user, plan, contract);
+      return agent.createReservation(reservationId, user, plan, contract);
     } catch (PlanningException e) {
-      LOG.info("Reservation=[" + reservationId + "] could not be added even " +
-          "after removing lower priority reservations. Attempt to re-add the " +
-          "removed reservations.");
+      LOG.info("Reservation=[" + reservationId + "] could not be added even "
+          + "after removing lower priority reservations. Attempt to re-add the "
+          + "removed reservations.");
       throw e;
     } finally {
-      // Add the reservations in the reverse order that they were removed.
-      for (ReservationAllocation reservation : yieldedReservations) {
-        try {
-          agent.createReservation(reservation.getReservationId(),
-              reservation.getUser(), plan, reservation
-                  .getReservationDefinition());
-        } catch(PlanningException e) {
-          LOG.info("Reservation=[" + reservation.getReservationId() + "] was " +
-              "removed to make room for a higher priority reservation=[" +
-              reservationId + "].");
-        }
-      }
+      addYieldedReservations(yieldedReservations, plan, reservationId);
     }
   }
 
@@ -98,22 +87,40 @@ public abstract class PriorityReservationAgent implements ReservationAgent {
       agent.updateReservation(reservationId, user, plan, contract);
       return true;
     } catch (PlanningException e) {
-      LOG.info("Encountered planning exception for reservation=[" +
-          reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]" +
-          " when updating the reservation. Attempt to accommodate for " +
-          "reservation by removing lower priority reservations. Exception=[" +
-          e.getMessage() + "]");
+      LOG.info("Encountered planning exception for reservation=["
+          + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
+          + " when creating the reservation. Attempt to accommodate for "
+          + "reservation by removing lower priority reservations. Exception=["
+          + e.getMessage() + "]");
     }
     List<ReservationAllocation> yieldedReservations =
         accommodateForReservation(reservationId, user, plan, contract);
 
-    // Add the reservations in the reverse order that they were removed.
-    for (ReservationAllocation reservation : yieldedReservations) {
-      agent.createReservation(reservation.getReservationId(),
-          reservation.getUser(), plan, reservation.getReservationDefinition());
+    try {
+      return agent.updateReservation(reservationId, user, plan, contract);
+    } catch (PlanningException e) {
+      LOG.info("Reservation=[" + reservationId + "] could not be added even "
+          + "after removing lower priority reservations. Attempt to re-add the "
+          + "removed reservations.");
+      throw e;
+    } finally {
+      addYieldedReservations(yieldedReservations, plan, reservationId);
     }
-    return true;
+  }
 
+  private void addYieldedReservations(List<ReservationAllocation> reservations,
+      Plan plan, ReservationId reservationId) {
+    for (ReservationAllocation reservation : reservations) {
+      try {
+        agent.createReservation(reservation.getReservationId(),
+            reservation.getUser(), plan,
+            reservation.getReservationDefinition());
+      } catch (PlanningException e) {
+        LOG.info("Reservation=[" + reservation.getReservationId() + "] was "
+            + "removed to make room for a higher priority reservation=["
+            + reservationId + "].");
+      }
+    }
   }
 
   public boolean deleteReservation(ReservationId reservationId, String user,

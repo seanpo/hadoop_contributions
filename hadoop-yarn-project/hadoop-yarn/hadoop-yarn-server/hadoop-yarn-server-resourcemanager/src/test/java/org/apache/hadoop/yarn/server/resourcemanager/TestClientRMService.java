@@ -1445,7 +1445,7 @@ public class TestClientRMService {
     }
     ReservationSubmissionRequest sRequest =
         ReservationSystemTestUtil.createSimpleReservationRequest(reservationID,
-            4, arrival, deadline, duration, 0);
+            4, arrival, deadline, duration);
     try {
       sResponse = clientService.submitReservation(sRequest);
     } catch (Exception e) {

@@ -6,15 +6,16 @@
  *   to you under the Apache License, Version 2.0 (the
  *   "License"); you may not use this file except in compliance
  *   with the License.  You may obtain a copy of the License at
- *  
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *******************************************************************************/
+ ******************************************************************************/
+
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.yarn.api.records.Priority;
@@ -49,17 +50,14 @@ import static org.mockito.Mockito.mock;
 
 public class TestSimplePriorityAgent {
 
-  PriorityReservationAgent agent;
-  InMemoryPlan plan;
-  Resource minAlloc = Resource.newInstance(1024, 1);
-  ResourceCalculator res = new DefaultResourceCalculator();
-  Resource maxAlloc = Resource.newInstance(1024 * 8, 8);
-  Random rand = new Random();
-  int numContainers = 100;
-  long step;
-
-  public TestSimplePriorityAgent() {
-  }
+  private PriorityReservationAgent agent;
+  private InMemoryPlan plan;
+  private Resource minAlloc = Resource.newInstance(1024, 1);
+  private ResourceCalculator res = new DefaultResourceCalculator();
+  private Resource maxAlloc = Resource.newInstance(1024 * 8, 8);
+  private Random rand = new Random();
+  private int numContainers = 100;
+  private long step;
 
   @Before
   public void setup() throws Exception {
@@ -68,7 +66,6 @@ public class TestSimplePriorityAgent {
     rand.setSeed(seed);
     Log.info("Running with seed: " + seed);
 
-    // setting completely loose quotas
     long timeWindow = 1000000L;
     Resource clusterCapacity =
         Resource.newInstance(numContainers * 1024, numContainers);
@@ -297,10 +294,9 @@ public class TestSimplePriorityAgent {
     boolean result = updateReservation(reservation2, numContainers);
 
     // validate results, we expect the second one to be accepted
-    assertFalse(
-        "Reservation update should fail if the new contract will not "
-            + "fit and there are no other reservations that have a lower priority.",
-        result);
+    assertFalse("Reservation update should fail if the new contract will not "
+        + "fit and there are no other reservations that have a lower "
+        + "priority.", result);
     assertTrue("The first two reservations are expected to succeed.",
         plan.getAllReservations().size() == 2);
   }

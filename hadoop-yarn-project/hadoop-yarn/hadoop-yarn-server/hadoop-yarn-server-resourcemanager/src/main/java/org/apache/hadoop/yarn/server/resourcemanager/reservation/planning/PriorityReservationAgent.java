@@ -14,7 +14,7 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *******************************************************************************/
+ ******************************************************************************/
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
@@ -28,6 +28,15 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.Plan
 
 import java.util.List;
 
+/**
+ * This {@link ReservationAgent} is an abstract agent that wraps other
+ * ReservationAgents to make them priority aware.
+ *
+ * {@link PriorityReservationAgent} will attempt to interact with the plan
+ * using the inner {@link ReservationAgent}. If this fails, it will attempt to
+ * accommodate for the reservation based on the method defined in the
+ * PriorityReservationAgent subclass.
+ */
 public abstract class PriorityReservationAgent implements ReservationAgent {
 
   private ReservationAgent agent;

@@ -139,7 +139,7 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
 
   /**
    * Gets the name of the {@code PriorityReservationAgent} class associated with
-   * the queue
+   * the queue.
    * @param queue name of the queue
    * @return the class name of the {@code PriorityReservationAgent}
    */

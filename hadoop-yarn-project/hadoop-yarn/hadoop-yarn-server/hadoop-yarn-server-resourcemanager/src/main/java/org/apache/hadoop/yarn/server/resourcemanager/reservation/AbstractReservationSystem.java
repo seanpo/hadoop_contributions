@@ -500,15 +500,15 @@ public abstract class AbstractReservationSystem extends AbstractService
     }
   }
 
-  protected Object getObject(Class baseClazz, String className) throws
-      ClassNotFoundException {
-      Class<?> clazz = conf.getClassByName(className);
-      if (baseClazz.isAssignableFrom(clazz)) {
-        return ReflectionUtils.newInstance(clazz, conf);
-      } else {
-        throw new YarnRuntimeException("Class: " + className
-            + " not instance of " + baseClazz.getCanonicalName());
-      }
+  protected Object getObject(Class baseClazz, String className)
+      throws ClassNotFoundException {
+    Class<?> clazz = conf.getClassByName(className);
+    if (baseClazz.isAssignableFrom(clazz)) {
+      return ReflectionUtils.newInstance(clazz, conf);
+    } else {
+      throw new YarnRuntimeException("Class: " + className + " not instance of "
+          + baseClazz.getCanonicalName());
+    }
   }
 
   public ReservationsACLsManager getReservationsACLsManager() {

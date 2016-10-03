@@ -31,6 +31,7 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.QueueACL;
 import org.apache.hadoop.yarn.api.records.QueueState;
 import org.apache.hadoop.yarn.api.records.ReservationACL;
+import org.apache.hadoop.yarn.api.records.ReservationPriorityScope;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
@@ -288,6 +289,11 @@ public class CapacitySchedulerConfiguration extends ReservationSchedulerConfigur
       "enable-reservation-priority";
   @Private public static final boolean DEFAULT_ENABLE_RESERVATION_PRIORITY =
       false;
+
+  @Private public static final String RESERVATION_PRIORITY_SCOPE =
+      "reservation-priority-scope";
+  @Private public static final ReservationPriorityScope
+      DEFAULT_RESERVATION_PRIORITY_SCOPE = ReservationPriorityScope.QUEUE;
 
   @Private
   public static final String PRIORITY_RESERVATION_AGENT_NAME =

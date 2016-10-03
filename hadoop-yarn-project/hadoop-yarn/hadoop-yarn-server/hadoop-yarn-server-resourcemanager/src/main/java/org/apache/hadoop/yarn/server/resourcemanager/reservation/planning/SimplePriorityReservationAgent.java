@@ -14,36 +14,68 @@
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *******************************************************************************/
+ ******************************************************************************/
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReservationAllocation;
+import org.apache.hadoop.yarn.api.records.ReservationPriorityScope;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.RLESparseResourceAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
-import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
-import org.apache.hadoop.yarn.util.resource.Resources;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * {@link SimplePriorityReservationAgent} employs the strategy of wrapping a
+ * configured reservation agent to leverage the algorithm for reservation
+ * submission, deletion, and update.
+ *
+ * If the reservaiton update, or submission fails,
+ * {@link SimplePriorityReservationAgent} will delete all reservations in the
+ * configured {@link ReservationPriorityScope} that are strictly lower priority
+ * than the offending reservation before trying again. After the offending
+ * reservation action has either succeeded or failed, the
+ * {@link SimplePriorityReservationAgent} will attempt to re-add all the
+ * reservations that have been deleted.
+ */
 public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
+  private ReservationPriorityScope scope;
+
   public SimplePriorityReservationAgent() {
+    this(new Configuration());
+  }
+
+  public SimplePriorityReservationAgent(Configuration conf) {
+    scope = conf.getEnum(
+        CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
+        CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
   }
 
   public List<ReservationAllocation> accommodateForReservation(
       ReservationId reservationId, String user, Plan plan,
       ReservationDefinition contract) throws PlanningException {
 
-    Set<ReservationAllocation> reservations = plan.getAllReservations();
+    Set<ReservationAllocation> reservations;
+    switch (scope) {
+      case USER:
+        // Get all reservations belonging to user;
+        reservations = plan.getReservations(null, null, user);
+        break;
+      case QUEUE:
+      default:
+        // Get all reservations in the queue.
+        reservations = plan.getAllReservations();
+        break;
+    }
+
     List<ReservationAllocation> yieldedReservations = new ArrayList<>();
 
     for (ReservationAllocation reservation : reservations) {

@@ -48,15 +48,14 @@ import java.util.Set;
 public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
   private ReservationPriorityScope scope;
+  private Configuration configuration;
 
   public SimplePriorityReservationAgent() {
     this(new Configuration());
   }
 
   public SimplePriorityReservationAgent(Configuration conf) {
-    scope = conf.getEnum(
-        CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
-        CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
+    setConf(conf);
   }
 
   public List<ReservationAllocation> accommodateForReservation(
@@ -65,15 +64,15 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
     Set<ReservationAllocation> reservations;
     switch (scope) {
-      case USER:
-        // Get all reservations belonging to user;
-        reservations = plan.getReservations(null, null, user);
-        break;
-      case QUEUE:
-      default:
-        // Get all reservations in the queue.
-        reservations = plan.getAllReservations();
-        break;
+    case USER:
+      // Get all reservations belonging to user;
+      reservations = plan.getReservations(null, null, user);
+      break;
+    case QUEUE:
+    default:
+      // Get all reservations in the queue.
+      reservations = plan.getAllReservations();
+      break;
     }
 
     List<ReservationAllocation> yieldedReservations = new ArrayList<>();
@@ -88,6 +87,21 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
     yieldedReservations.sort(new ReservationComparator());
     return yieldedReservations;
+  }
+
+  public Configuration getConf() {
+    return configuration;
+  }
+
+  public void setConf(Configuration conf) {
+    configuration = conf;
+    reinitialize(conf);
+  }
+
+  private void reinitialize(Configuration conf) {
+    scope = conf.getEnum(
+        CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
+        CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
   }
 
   private class ReservationComparator

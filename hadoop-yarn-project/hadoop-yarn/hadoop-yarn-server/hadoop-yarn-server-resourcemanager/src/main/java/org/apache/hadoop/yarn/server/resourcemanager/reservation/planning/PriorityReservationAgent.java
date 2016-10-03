@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
@@ -37,7 +38,8 @@ import java.util.List;
  * accommodate for the reservation based on the method defined in the
  * PriorityReservationAgent subclass.
  */
-public abstract class PriorityReservationAgent implements ReservationAgent {
+public abstract class PriorityReservationAgent implements ReservationAgent,
+    Configurable {
 
   private ReservationAgent agent;
 

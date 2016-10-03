@@ -1141,7 +1141,7 @@ public class TestAlignedPlanner {
 
     return ReservationDefinition.newInstance(arrival, deadline,
         ReservationRequests.newInstance(Arrays.asList(reservationRequests),
-            rType), username, 0);
+            rType), username);
 
   }
 

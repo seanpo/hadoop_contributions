@@ -47,8 +47,8 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     List<ReservationAllocation> yieldedReservations = new ArrayList<>();
 
     for (ReservationAllocation reservation : reservations) {
-      if (contract.getPriority() > reservation.getReservationDefinition()
-          .getPriority()) {
+      if (contract.getPriority().getPriority() >
+          reservation.getReservationDefinition().getPriority().getPriority()) {
         yieldedReservations.add(reservation);
         plan.deleteReservation(reservation.getReservationId());
       }
@@ -74,7 +74,8 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
         // will take precedence over a reservation that arrives later.
         return compare(definitionA.getArrival(), definitionB.getArrival());
       }
-      return compare(definitionB.getPriority(), definitionA.getPriority());
+      return compare(definitionB.getPriority().getPriority(),
+          definitionA.getPriority().getPriority());
     }
 
     public int compare(long a, long b) {

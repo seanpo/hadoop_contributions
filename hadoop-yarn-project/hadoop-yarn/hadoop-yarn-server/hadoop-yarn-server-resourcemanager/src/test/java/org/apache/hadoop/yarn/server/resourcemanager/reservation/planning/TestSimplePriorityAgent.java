@@ -17,6 +17,7 @@
  *******************************************************************************/
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationRequest;
@@ -380,8 +381,7 @@ public class TestSimplePriorityAgent {
     ReservationId reservation3 = submitReservation(3,
         (int) (0.2 * numContainers), 2 * step, 6 * step, 4 * step);
 
-    boolean result =
-        updateReservation(reservation3, (int) (0.7 * numContainers));
+    updateReservation(reservation3, (int) (0.7 * numContainers));
 
     // validate results, we expect the second one to be accepted
     assertTrue("Reservation should succeed because lower priority "
@@ -488,7 +488,7 @@ public class TestSimplePriorityAgent {
     ReservationDefinition rr = new ReservationDefinitionPBImpl();
     rr.setArrival(arrival);
     rr.setDeadline(deadline);
-    rr.setPriority(priority);
+    rr.setPriority(Priority.newInstance(priority));
     ReservationRequests reqs = new ReservationRequestsPBImpl();
     reqs.setInterpreter(ReservationRequestInterpreter.R_ALL);
     ReservationRequest r = ReservationRequest

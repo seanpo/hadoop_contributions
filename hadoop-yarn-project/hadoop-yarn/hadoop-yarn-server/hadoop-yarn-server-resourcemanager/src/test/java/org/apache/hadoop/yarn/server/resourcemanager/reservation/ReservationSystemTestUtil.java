@@ -197,7 +197,7 @@ public class ReservationSystemTestUtil {
     rDef.setReservationRequests(reqs);
     rDef.setArrival(arrival);
     rDef.setDeadline(deadline);
-    rDef.setPriority(priority);
+    rDef.setPriority(Priority.newInstance(priority));
     return rDef;
   }
 

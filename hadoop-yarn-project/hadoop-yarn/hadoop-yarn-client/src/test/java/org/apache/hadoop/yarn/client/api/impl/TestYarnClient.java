@@ -1336,11 +1336,11 @@ public class TestYarnClient {
   }
 
   private ReservationSubmissionRequest submitReservationTestHelper(
-      YarnClient client, long arrival, long deadline, long duration,
-      int priority) throws IOException, YarnException {
+      YarnClient client, long arrival, long deadline, long duration)
+      throws IOException, YarnException {
     ReservationId reservationID = client.createReservation().getReservationId();
     ReservationSubmissionRequest sRequest = createSimpleReservationRequest(
-        reservationID, 4, arrival, deadline, duration, priority);
+        reservationID, 4, arrival, deadline, duration);
     Assert.assertNotNull(client.submitReservation(sRequest));
     Assert.assertNotNull(reservationID);
     System.out.println("Submit reservation response: " + reservationID);
@@ -1358,7 +1358,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       // Submit the reservation again with the same request and make sure it
       // passes.
@@ -1397,7 +1397,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       ReservationDefinition rDef = sRequest.getReservationDefinition();
       ReservationRequest rr =
@@ -1434,7 +1434,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       ReservationId reservationID = sRequest.getReservationId();
       ReservationListRequest request = ReservationListRequest.newInstance(
@@ -1466,7 +1466,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       // List reservations, search by a point in time within the reservation
       // range.
@@ -1521,7 +1521,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       // List reservations, search by invalid end time == -1.
       ReservationListRequest request = ReservationListRequest
@@ -1562,7 +1562,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       // List reservations, search by very large start time.
       ReservationListRequest request = ReservationListRequest.newInstance(
@@ -1632,7 +1632,7 @@ public class TestYarnClient {
       long duration = 60000;
       long deadline = (long) (arrival + 1.05 * duration);
       ReservationSubmissionRequest sRequest =
-          submitReservationTestHelper(client, arrival, deadline, duration, 0);
+          submitReservationTestHelper(client, arrival, deadline, duration);
 
       ReservationId reservationID = sRequest.getReservationId();
       // Delete the reservation
@@ -1661,7 +1661,7 @@ public class TestYarnClient {
 
   private ReservationSubmissionRequest createSimpleReservationRequest(
       ReservationId reservationId, int numContainers, long arrival,
-      long deadline, long duration, int priority) {
+      long deadline, long duration) {
     // create a request with a single atomic ask
     ReservationRequest r =
         ReservationRequest.newInstance(Resource.newInstance(1024, 1),
@@ -1671,7 +1671,7 @@ public class TestYarnClient {
             ReservationRequestInterpreter.R_ALL);
     ReservationDefinition rDef =
         ReservationDefinition.newInstance(arrival, deadline, reqs,
-            "testYarnClient#reservation", priority);
+            "testYarnClient#reservation");
     ReservationSubmissionRequest request =
         ReservationSubmissionRequest.newInstance(rDef,
             ReservationSystemTestUtil.reservationQ, reservationId);

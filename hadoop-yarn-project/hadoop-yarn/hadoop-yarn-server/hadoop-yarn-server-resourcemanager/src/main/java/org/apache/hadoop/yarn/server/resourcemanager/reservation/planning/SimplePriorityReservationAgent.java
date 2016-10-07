@@ -37,7 +37,7 @@ import java.util.Set;
  * configured reservation agent to leverage the algorithm for reservation
  * submission, deletion, and update.
  *
- * If the reservaiton update, or submission fails,
+ * If the reservation update, or submission fails,
  * {@link SimplePriorityReservationAgent} will delete all reservations in the
  * configured {@link ReservationPriorityScope} that are strictly lower priority
  * than the offending reservation before trying again. After the offending
@@ -78,7 +78,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     List<ReservationAllocation> yieldedReservations = new ArrayList<>();
 
     for (ReservationAllocation reservation : reservations) {
-      if (contract.getPriority().getPriority() >
+      if (contract.getPriority().getPriority() <
           reservation.getReservationDefinition().getPriority().getPriority()) {
         yieldedReservations.add(reservation);
         plan.deleteReservation(reservation.getReservationId());
@@ -104,7 +104,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
         CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
   }
 
-  private class ReservationComparator
+  private static class ReservationComparator
       implements Comparator<ReservationAllocation> {
 
     public int compare(ReservationAllocation reservationA,
@@ -113,15 +113,12 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
           reservationA.getReservationDefinition();
       ReservationDefinition definitionB =
           reservationB.getReservationDefinition();
-      if (definitionA.getPriority() == definitionB.getPriority()) {
-        // The arrival is compared in opposite order of priority because
-        // higher number for priority indicates a reservation with a higher
-        // priority. Conversely, a reservation with an earlier arrival time
-        // will take precedence over a reservation that arrives later.
+      if (definitionA.getPriority().getPriority() == definitionB.getPriority()
+          .getPriority()) {
         return compare(definitionA.getArrival(), definitionB.getArrival());
       }
-      return compare(definitionB.getPriority().getPriority(),
-          definitionA.getPriority().getPriority());
+      return compare(definitionA.getPriority().getPriority(),
+          definitionB.getPriority().getPriority());
     }
 
     public int compare(long a, long b) {

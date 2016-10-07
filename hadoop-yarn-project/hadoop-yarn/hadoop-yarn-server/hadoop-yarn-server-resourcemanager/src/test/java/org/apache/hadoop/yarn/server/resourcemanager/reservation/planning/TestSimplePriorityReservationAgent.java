@@ -48,7 +48,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-@SuppressWarnings("javadoc")
+/**
+ * {@link TestSimplePriorityReservationAgent} verifies the logic of the
+ * {@link SimplePriorityReservationAgent}.
+ */
 public class TestSimplePriorityReservationAgent {
 
   private final String defaultUser = "u1";
@@ -148,7 +151,7 @@ public class TestSimplePriorityReservationAgent {
     assertReservationsInPlan(reservation2, reservation3);
     assertReservationsNotInPlan(reservation1);
   }
-  
+
   @SuppressWarnings("javadoc")
   @Test
   public void testSubmitWithHigherPriorityNoFitUser() throws PlanningException {

@@ -27,6 +27,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllo
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -105,7 +106,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
   }
 
   private static class ReservationComparator
-      implements Comparator<ReservationAllocation> {
+      implements Comparator<ReservationAllocation>, Serializable {
 
     public int compare(ReservationAllocation reservationA,
         ReservationAllocation reservationB) {

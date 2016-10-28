@@ -57,7 +57,7 @@ class CSQueueUtils {
           + ")");
   }
   }
-  
+
   /**
    * Check sanity of capacities:
    * - capacity <= maxCapacity
@@ -95,18 +95,6 @@ class CSQueueUtils {
         (parent == null) ? 1.0f : parent.getAbsoluteMaximumCapacity();
     return (parentAbsMaxCapacity * maximumCapacity);
   }
-  
-  /**
-   * This method intends to be used by ReservationQueue, ReservationQueue will
-   * not appear in configuration file, so we shouldn't do load capacities
-   * settings in configuration for reservation queue.
-   */
-  public static void updateAndCheckCapacitiesByLabel(String queuePath,
-      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
-    updateAbsoluteCapacitiesByNodeLabels(queueCapacities, parentQueueCapacities);
-
-    capacitiesSanityCheck(queuePath, queueCapacities);
-  }
 
   /**
    * Do following steps for capacities
@@ -117,10 +105,18 @@ class CSQueueUtils {
   public static void loadUpdateAndCheckCapacities(String queuePath,
       CapacitySchedulerConfiguration csConf,
       QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
-    loadCapacitiesByLabelsFromConf(queuePath,
-        queueCapacities, csConf);
+    loadUpdateAndCheckCapacities(queuePath, csConf, queueCapacities,
+        parentQueueCapacities, null);
+  }
 
-    updateAbsoluteCapacitiesByNodeLabels(queueCapacities, parentQueueCapacities);
+  public static void loadUpdateAndCheckCapacities(String queuePath,
+      CapacitySchedulerConfiguration csConf,
+      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities,
+      Set<String> whiteList) {
+    loadCapacitiesByLabelsFromConf(queuePath, queueCapacities, csConf);
+
+    updateAbsoluteCapacitiesByNodeLabels(queueCapacities,
+        parentQueueCapacities, whiteList);
 
     capacitiesSanityCheck(queuePath, queueCapacities);
   }
@@ -153,8 +149,13 @@ class CSQueueUtils {
   
   // Set absolute capacities for {capacity, maximum-capacity}
   private static void updateAbsoluteCapacitiesByNodeLabels(
-      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
+      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities,
+      Set<String> whiteList) {
     for (String label : queueCapacities.getExistingNodeLabels()) {
+      if (whiteList != null && whiteList.size() > 0 &&
+          !whiteList.contains(label)) {
+        continue;
+      }
       float capacity = queueCapacities.getCapacity(label);
       if (capacity > 0f) {
         queueCapacities.setAbsoluteCapacity(

@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerDynamicEditException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
@@ -69,6 +70,10 @@ public class TestReservationQueue {
     // create a queue
     PlanQueue pq = new PlanQueue(csContext, "root", null, null);
     reservationQueue = new ReservationQueue(csContext, "a", pq);
+    assertTrue(pq.getAbsoluteCapacity() == reservationQueue
+        .getAbsoluteCapacity());
+    assertTrue(pq.getAbsoluteMaximumCapacity() == reservationQueue
+        .getAbsoluteMaximumCapacity());
   }
 
   private void validateReservationQueue(double capacity) {
@@ -81,7 +86,8 @@ public class TestReservationQueue {
   private void validateUserAmResourceLimit(ReservationQueue queue,
       ResourceCalculator calculator, Resource capacityResource,
       float capacity) {
-    Resource userAmResourceLimit = queue.getUserAMResourceLimit();
+    Resource userAmResourceLimit = queue
+        .getUserAMResourceLimitPerPartition(CommonNodeLabelsManager.NO_LABEL);
     capacity = capacity * csConf.getMaximumApplicationMasterResourcePercent();
     Resource expectedUserAmResourceLimit = calculator.multiplyAndNormalizeUp(
         capacityResource, capacity, Resource.newInstance(1, 1));

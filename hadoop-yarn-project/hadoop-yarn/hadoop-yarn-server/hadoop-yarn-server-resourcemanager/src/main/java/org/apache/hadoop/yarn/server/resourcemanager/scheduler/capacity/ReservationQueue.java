@@ -19,11 +19,15 @@
 package org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
 
 import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.nodelabels.CommonNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystem;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerDynamicEditException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
+import org.apache.hadoop.yarn.util.resource.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,6 +121,24 @@ public class ReservationQueue extends LeafQueue {
     CSQueue parent = getParent();
     CSQueueUtils.loadUpdateAndCheckCapacities(parent.getQueuePath(),
         csContext.getConfiguration(), queueCapacities,
-        parent == null ? null : parent.getQueueCapacities());
+        parent.getQueueCapacities(), new HashSet<>(
+            Collections.singletonList(CommonNodeLabelsManager.NO_LABEL)));
+  }
+
+  @Override
+  public synchronized Resource getAMResourceLimit() {
+    // as for other MaxApplications limits, the time-varying nature of
+    // capacity for reservation queue makes the default behavior not
+    // desirable. We fall back to my parent limits;
+    Resource amResourceLimit = Resources.multiplyAndNormalizeUp(
+        resourceCalculator, csContext.getClusterResource(),
+        parent.getAbsoluteCapacity(), minimumAllocation);
+    metrics.setAMResouceLimit(amResourceLimit);
+    return amResourceLimit;
+  }
+
+  @Override
+  public synchronized Resource getUserAMResourceLimit() {
+    return getAMResourceLimit();
   }
 }

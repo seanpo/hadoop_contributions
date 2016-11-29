@@ -47,11 +47,13 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.MockNM;
 import org.apache.hadoop.yarn.server.resourcemanager.MockRM;
 import org.apache.hadoop.yarn.server.resourcemanager.ResourceManager;
+import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedulerConfiguration;
+import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.AppInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.ReservationDeleteRequestInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.ReservationSubmissionRequestInfo;
 import org.apache.hadoop.yarn.server.resourcemanager.webapp.dao.ReservationUpdateRequestInfo;
@@ -92,7 +94,7 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
 
   private static MockRM rm;
 
-  private static final int MINIMUM_RESOURCE_DURATION = 1000000;
+  private static final int MINIMUM_RESOURCE_DURATION = 10000;
   private static final Clock clock = new UTCClock();
   private static final String TEST_DIR = new File(System.getProperty(
       "test.build.data", "/tmp")).getAbsolutePath();
@@ -929,11 +931,7 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
   @Test
   public void testDeleteReservation() throws JSONException, Exception {
     rm.start();
-    for (int i = 0; i < 100; i++) {
-      MockNM amNodeManager =
-          rm.registerNode("127.0.0." + i + ":1234", 100 * 1024);
-      amNodeManager.nodeHeartbeat(true);
-    }
+    setupCluster(100);
 
     ReservationId rid = getReservationIdTestHelper(1);
 
@@ -941,6 +939,32 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
         .APPLICATION_JSON, rid);
     testDeleteReservationHelper("reservation/delete", rid,
         MediaType.APPLICATION_JSON);
+
+    rm.stop();
+  }
+
+  @Test
+  public void testReservationIdInClusterApps() throws Exception {
+    rm.start();
+    setupCluster(100);
+
+    ReservationId rid = getReservationIdTestHelper(1);
+    ClientResponse response = reservationSubmissionTestHelper(
+        "reservation/submit", MediaType.APPLICATION_JSON, clock.getTime(),
+        "res1", rid);
+
+    if (this.isAuthenticationEnabled()) {
+      assertTrue(isHttpSuccessResponse(response));
+      rm.getRMContext().getReservationSystem().synchronizePlan(DEFAULT_QUEUE,
+          false);
+      RMApp app = rm.submitApp(1024, "new_app", rid, DEFAULT_QUEUE);
+      ClientResponse response2 = getApplicationReportHelper(
+          "apps/" + app.getApplicationId().toString(),
+          MediaType.APPLICATION_JSON);
+      AppInfo info = response2.getEntity(AppInfo.class);
+
+      assertTrue(info.getReservationId().equals(rid.toString()));
+    }
 
     rm.stop();
   }
@@ -996,9 +1020,10 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
       ReservationId reservationId) throws Exception {
     String reservationJson = loadJsonFile("submit-reservation.json");
 
-    String reservationJsonRequest = String.format(reservationJson,
-        reservationId.toString(), arrival, arrival + MINIMUM_RESOURCE_DURATION,
-        reservationName);
+    String reservationJsonRequest =
+        String.format(reservationJson, reservationId.toString(), arrival,
+            arrival + MINIMUM_RESOURCE_DURATION, reservationName,
+            (int) Math.floor(0.9 * MINIMUM_RESOURCE_DURATION));
 
     return submitAndVerifyReservation(path, media, reservationJsonRequest);
   }
@@ -1017,6 +1042,19 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
     ClientResponse response =
         constructWebResource(path).entity(rsci, MediaType.APPLICATION_JSON)
             .accept(media).post(ClientResponse.class);
+
+    if (!this.isAuthenticationEnabled()) {
+      assertResponseStatusCode(Status.UNAUTHORIZED, response.getStatusInfo());
+    }
+
+    return response;
+  }
+
+  private ClientResponse getApplicationReportHelper(String path, String media)
+      throws Exception {
+    Thread.sleep(1000);
+    ClientResponse response =
+        constructWebResource(path).accept(media).get(ClientResponse.class);
 
     if (!this.isAuthenticationEnabled()) {
       assertResponseStatusCode(Status.UNAUTHORIZED, response.getStatusInfo());
@@ -1119,8 +1157,8 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
             ("reservation-request-interpreter");
 
     assertEquals("0", type);
-    assertEquals(60, requests.getJSONArray("reservation-request")
-            .getJSONObject(0).getInt("duration"));
+    assertEquals((int) Math.floor(0.9 * MINIMUM_RESOURCE_DURATION),
+        requests.getJSONObject("reservation-request").getInt("duration"));
   }
 
   private JSONObject testListReservationHelper(WebResource resource) throws

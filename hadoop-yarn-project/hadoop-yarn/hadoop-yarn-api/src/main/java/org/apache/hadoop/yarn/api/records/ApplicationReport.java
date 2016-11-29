@@ -457,4 +457,16 @@ public abstract class ApplicationReport {
   @Unstable
   public abstract void setApplicationTimeouts(
       Map<ApplicationTimeoutType, ApplicationTimeout> timeouts);
+
+  /**
+   * Get the default Node Label expression for all the application's containers
+   *
+   * @return Application's NodeLabelExpression
+   */
+  @Unstable
+  public abstract ReservationId getReservationId();
+
+  @Unstable
+  public abstract void setReservationId(ReservationId reservationId);
+
 }

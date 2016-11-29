@@ -41,8 +41,10 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationReportRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationReportResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.GetNewReservationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.SignalContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
@@ -62,6 +64,8 @@ import org.apache.hadoop.yarn.api.records.LogAggregationContext;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.Priority;
+import org.apache.hadoop.yarn.api.records.ReservationDefinition;
+import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.api.records.SignalContainerCommand;
@@ -278,8 +282,9 @@ public class MockRM extends ResourceManager {
         break;
       }
 
-      LOG.info("App : " + appId + " State is : " + app.getState() +
-              " Waiting for state : " + finalState);
+      LOG.info("App : " + appId + " State is : " + app.getState()
+          + " Waiting for state : " + finalState + "Because of: "
+          + app.getDiagnostics());
       Thread.sleep(WAIT_MS_PER_LOOP);
       timeWaiting += WAIT_MS_PER_LOOP;
     }
@@ -514,6 +519,18 @@ public class MockRM extends ResourceManager {
     return submitApp(masterMemory, false);
   }
 
+  public RMApp submitApp(int masterMemory, String name,
+      ReservationId reservationId, String queue) throws Exception {
+    Resource resource = Resource.newInstance(masterMemory, 0);
+    return submitApp(resource, name,
+        UserGroupInformation.getCurrentUser().getShortUserName(), null, false,
+        queue,
+        super.getConfig().getInt(YarnConfiguration.RM_AM_MAX_ATTEMPTS,
+            YarnConfiguration.DEFAULT_RM_AM_MAX_ATTEMPTS),
+        null, null, true, false, false, null, 0, null, true, null, "", null,
+        reservationId, null);
+  }
+
   public RMApp submitApp(int masterMemory, Priority priority) throws Exception {
     Resource resource = Resource.newInstance(masterMemory, 0);
     return submitApp(resource, "", UserGroupInformation.getCurrentUser()
@@ -565,7 +582,7 @@ public class MockRM extends ResourceManager {
     return submitApp(resource, name, user, acls, false, queue,
       super.getConfig().getInt(YarnConfiguration.RM_AM_MAX_ATTEMPTS,
       YarnConfiguration.DEFAULT_RM_AM_MAX_ATTEMPTS), null, null, true, false,
-        false, null, 0, null, true, priority, amLabel, null, null);
+        false, null, 0, null, true, priority, amLabel, null, null, null);
   }
 
   public RMApp submitApp(Resource resource, String name, String user,
@@ -667,7 +684,7 @@ public class MockRM extends ResourceManager {
       maxAppAttempts, ts, appType, waitForAccepted, keepContainers,
       isAppIdProvided, applicationId, attemptFailuresValidityInterval,
         logAggregationContext, cancelTokensWhenComplete, priority, "", null,
-        null);
+        null, null);
   }
 
   public RMApp submitApp(Credentials cred, ByteBuffer tokensConf)
@@ -676,7 +693,22 @@ public class MockRM extends ResourceManager {
         null, super.getConfig().getInt(YarnConfiguration.RM_AM_MAX_ATTEMPTS,
             YarnConfiguration.DEFAULT_RM_AM_MAX_ATTEMPTS), cred, null, true,
         false, false, null, 0, null, true, Priority.newInstance(0), null, null,
-        tokensConf);
+        null, tokensConf);
+  }
+
+  public RMApp submitApp(Resource capability, String name, String user,
+      Map<ApplicationAccessType, String> acls, boolean unmanaged, String queue,
+      int maxAppAttempts, Credentials ts, String appType,
+      boolean waitForAccepted, boolean keepContainers, boolean isAppIdProvided,
+      ApplicationId applicationId, long attemptFailuresValidityInterval,
+      LogAggregationContext logAggregationContext,
+      boolean cancelTokensWhenComplete, Priority priority, String amLabel,
+      Map<ApplicationTimeoutType, Long> applicationTimeouts) throws Exception {
+    return submitApp(capability, name, user, acls, unmanaged, queue,
+        maxAppAttempts, ts, appType, waitForAccepted, keepContainers,
+        isAppIdProvided, applicationId, attemptFailuresValidityInterval,
+        logAggregationContext, cancelTokensWhenComplete, priority, amLabel,
+        applicationTimeouts, null, null);
   }
 
   public RMApp submitApp(List<ResourceRequest> amResourceRequests)
@@ -687,7 +719,7 @@ public class MockRM extends ResourceManager {
         YarnConfiguration.DEFAULT_RM_AM_MAX_ATTEMPTS), null, null, true,
         false, false, null, 0, null, true,
         amResourceRequests.get(0).getPriority(),
-        amResourceRequests.get(0).getNodeLabelExpression(), null, null);
+        amResourceRequests.get(0).getNodeLabelExpression(), null, null, null);
   }
 
   public RMApp submitApp(Resource capability, String name, String user,
@@ -697,9 +729,8 @@ public class MockRM extends ResourceManager {
       ApplicationId applicationId, long attemptFailuresValidityInterval,
       LogAggregationContext logAggregationContext,
       boolean cancelTokensWhenComplete, Priority priority, String amLabel,
-      Map<ApplicationTimeoutType, Long> applicationTimeouts,
-      ByteBuffer tokensConf)
-      throws Exception {
+      Map<ApplicationTimeoutType, Long> applicationTimeouts, ReservationId
+      reservationId, ByteBuffer tokensConf) throws Exception {
     priority = (priority == null) ? Priority.newInstance(0) : priority;
     ResourceRequest amResourceRequest = ResourceRequest.newInstance(
         priority, ResourceRequest.ANY, capability, 1);
@@ -711,7 +742,7 @@ public class MockRM extends ResourceManager {
         keepContainers, isAppIdProvided, applicationId,
         attemptFailuresValidityInterval, logAggregationContext,
         cancelTokensWhenComplete, priority, amLabel, applicationTimeouts,
-        tokensConf);
+        reservationId, tokensConf);
   }
 
   public RMApp submitApp(List<ResourceRequest> amResourceRequests, String name,
@@ -722,8 +753,7 @@ public class MockRM extends ResourceManager {
       LogAggregationContext logAggregationContext,
       boolean cancelTokensWhenComplete, Priority priority, String amLabel,
       Map<ApplicationTimeoutType, Long> applicationTimeouts,
-      ByteBuffer tokensConf)
-      throws Exception {
+      ReservationId reservationId, ByteBuffer tokensConf) throws Exception {
     ApplicationId appId = isAppIdProvided ? applicationId : null;
     ApplicationClientProtocol client = getClientRMService();
     if (! isAppIdProvided) {
@@ -737,6 +767,7 @@ public class MockRM extends ResourceManager {
         .newRecord(ApplicationSubmissionContext.class);
     sub.setKeepContainersAcrossApplicationAttempts(keepContainers);
     sub.setApplicationId(appId);
+    sub.setReservationID(reservationId);
     sub.setApplicationName(name);
     sub.setMaxAppAttempts(maxAppAttempts);
     if (applicationTimeouts != null && applicationTimeouts.size() > 0) {
@@ -1205,6 +1236,19 @@ public class MockRM extends ResourceManager {
     return response.getApplicationReport();
   }
 
+  public ReservationId getNewReservation() throws YarnException, IOException {
+    ApplicationClientProtocol client = getClientRMService();
+    return client.getNewReservation(GetNewReservationRequest.newInstance())
+        .getReservationId();
+  }
+
+  public void submitReservation(ReservationDefinition definition, String queue,
+      ReservationId reservationId) throws YarnException, IOException {
+    ApplicationClientProtocol client = getClientRMService();
+    client.submitReservation(ReservationSubmissionRequest
+        .newInstance(definition, queue, reservationId));
+  }
+
   public void updateReservationState(ReservationUpdateRequest request)
       throws IOException, YarnException {
     ApplicationClientProtocol client = getClientRMService();
@@ -1283,8 +1327,7 @@ public class MockRM extends ResourceManager {
         null, false, null,
         super.getConfig().getInt(YarnConfiguration.RM_AM_MAX_ATTEMPTS,
             YarnConfiguration.DEFAULT_RM_AM_MAX_ATTEMPTS), null, null, true,
-        false, false, null, 0, null, true, priority, null, applicationTimeouts,
-        null);
+        false, false, null, 0, null, true, priority, null, applicationTimeouts);
   }
 
   @Override

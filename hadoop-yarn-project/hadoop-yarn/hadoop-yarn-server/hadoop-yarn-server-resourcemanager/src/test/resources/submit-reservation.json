@@ -9,18 +9,9 @@
         "reservation-request-interpreter" : 0,
         "reservation-request" : [
            {
-             "duration" : 60,
+             "duration" : %s,
              "num-containers" : 220,
              "min-concurrency" : 220,
-             "capability" : {
-               "memory" : 1024,
-               "vCores" : 1
-             }
-           },
-           {
-             "duration" : 120,
-             "num-containers" : 110,
-             "min-concurrency" : 110,
              "capability" : {
                "memory" : 1024,
                "vCores" : 1

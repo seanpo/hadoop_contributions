@@ -30,6 +30,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationTimeoutType;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LogAggregationStatus;
 import org.apache.hadoop.yarn.api.records.Priority;
+import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Token;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.proto.YarnProtos.AppTimeoutsMapProto;
@@ -42,6 +43,7 @@ import org.apache.hadoop.yarn.proto.YarnProtos.ApplicationTimeoutProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.FinalApplicationStatusProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.LogAggregationStatusProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.PriorityProto;
+import org.apache.hadoop.yarn.proto.YarnProtos.ReservationIdProto;
 import org.apache.hadoop.yarn.proto.YarnProtos.YarnApplicationStateProto;
 
 import com.google.protobuf.TextFormat;
@@ -579,6 +581,15 @@ public class ApplicationReportPBImpl extends ApplicationReport {
     return ((PriorityPBImpl)t).getProto();
   }
 
+  private ReservationIdPBImpl convertFromProtoFormat(
+      ReservationIdProto r) {
+    return new ReservationIdPBImpl(r);
+  }
+
+  private ReservationIdProto convertToProtoFormat(ReservationId r) {
+    return ((ReservationIdPBImpl) r).getProto();
+  }
+
   @Override
   public LogAggregationStatus getLogAggregationStatus() {
     ApplicationReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -762,6 +773,24 @@ public class ApplicationReportPBImpl extends ApplicationReport {
           }
         };
     this.builder.addAllAppTimeouts(values);
+  }
+
+  public ReservationId getReservationId() {
+    ApplicationReportProtoOrBuilder p = viaProto ? proto : builder;
+    if (!p.hasReservationId()) {
+      return null;
+    }
+    return convertFromProtoFormat(p.getReservationId());
+  }
+
+  @Override
+  public void setReservationId(ReservationId reservationId) {
+    maybeInitBuilder();
+    if (reservationId == null) {
+      builder.clearReservationId();
+      return;
+    }
+    builder.setReservationId(convertToProtoFormat(reservationId));
   }
 
 }

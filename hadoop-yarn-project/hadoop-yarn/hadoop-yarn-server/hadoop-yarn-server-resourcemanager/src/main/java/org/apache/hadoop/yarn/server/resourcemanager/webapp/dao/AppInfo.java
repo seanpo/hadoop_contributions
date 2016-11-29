@@ -34,6 +34,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationTimeoutType;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LogAggregationStatus;
+import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -73,6 +74,7 @@ public class AppInfo {
   protected String user;
   protected String name;
   protected String queue;
+  protected String reservationId;
   protected YarnApplicationState state;
   protected FinalApplicationStatus finalStatus;
   protected float progress;
@@ -162,6 +164,10 @@ public class AppInfo {
       if (app.getApplicationPriority() != null) {
         this.priority = app.getApplicationPriority()
             .getPriority();
+      }
+      ReservationId reservationId = app.getReservationId();
+      if (reservationId != null) {
+        this.reservationId = app.getReservationId().toString();
       }
       this.progress = app.getProgress() * 100;
       this.diagnostics = app.getDiagnostics().toString();
@@ -457,6 +463,10 @@ public class AppInfo {
 
   public String getAmNodeLabelExpression() {
     return this.amNodeLabelExpression;
+  }
+
+  public String getReservationId() {
+    return this.reservationId;
   }
 
   public ResourcesInfo getResourceInfo() {

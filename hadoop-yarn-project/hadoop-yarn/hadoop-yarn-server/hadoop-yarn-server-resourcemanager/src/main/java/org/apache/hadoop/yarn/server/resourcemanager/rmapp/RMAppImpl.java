@@ -786,6 +786,7 @@ public class RMAppImpl implements RMApp, Recoverable {
       }
       report.setApplicationTimeouts(
           Collections.singletonMap(timeout.getTimeoutType(), timeout));
+      report.setReservationId(this.getReservationId());
       return report;
     } finally {
       this.readLock.unlock();

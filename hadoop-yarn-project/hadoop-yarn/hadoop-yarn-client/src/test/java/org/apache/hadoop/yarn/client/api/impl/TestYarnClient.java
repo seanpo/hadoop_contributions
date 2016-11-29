@@ -103,6 +103,7 @@ import org.apache.hadoop.yarn.api.records.ReservationRequest;
 import org.apache.hadoop.yarn.api.records.ReservationRequestInterpreter;
 import org.apache.hadoop.yarn.api.records.ReservationRequests;
 import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.api.records.SignalContainerCommand;
 import org.apache.hadoop.yarn.api.records.YarnApplicationAttemptState;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
@@ -1349,6 +1350,33 @@ public class TestYarnClient {
     System.out.println("Submit reservation response: " + reservationID);
 
     return sRequest;
+  }
+
+  @Test
+  public void testReservationIdInClusterApps() throws Exception {
+    MiniYARNCluster cluster = setupMiniYARNCluster();
+    YarnClient client = setupYarnClient(cluster);
+    Clock clock = new UTCClock();
+    long arrival = clock.getTime();
+    long duration = 60000;
+    long deadline = (long) (arrival + 1.05 * duration);
+
+    ApplicationSubmissionContext context =
+        client.createApplication().getApplicationSubmissionContext();
+    ReservationId reservationId =
+        submitReservationTestHelper(client, arrival, deadline, duration)
+            .getReservationId();
+    context.setReservationID(reservationId);
+    context.setAMContainerSpec(ContainerLaunchContext.newInstance(new HashMap(),
+        new HashMap(), new ArrayList(), new HashMap(), null, new HashMap()));
+    context.setAMContainerResourceRequest(ResourceRequest.newInstance(
+        Priority.UNDEFINED, "", Resource.newInstance(1024, 1), 1));
+    client.submitApplication(context);
+    ApplicationReport report =
+        client.getApplicationReport(context.getApplicationId());
+    Assert.assertTrue(report.getReservationId().equals(reservationId));
+
+    client.stop();
   }
 
   @Test

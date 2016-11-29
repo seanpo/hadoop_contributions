@@ -459,13 +459,16 @@ public abstract class ApplicationReport {
       Map<ApplicationTimeoutType, ApplicationTimeout> timeouts);
 
   /**
-   * Get the default Node Label expression for all the application's containers
+   * Get the {@link ReservationId} that the application is submitted to.
    *
-   * @return Application's NodeLabelExpression
+   * @return Application's ReservationId
    */
   @Unstable
   public abstract ReservationId getReservationId();
 
+  /**
+   * Set the {@link ReservationId} that the application is submitted to.
+   */
   @Unstable
   public abstract void setReservationId(ReservationId reservationId);
 

@@ -1052,7 +1052,6 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
 
   private ClientResponse getApplicationReportHelper(String path, String media)
       throws Exception {
-    Thread.sleep(1000);
     ClientResponse response =
         constructWebResource(path).accept(media).get(ClientResponse.class);
 

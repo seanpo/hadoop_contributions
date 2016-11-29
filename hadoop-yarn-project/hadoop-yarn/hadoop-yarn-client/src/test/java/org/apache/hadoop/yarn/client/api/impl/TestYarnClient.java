@@ -1367,8 +1367,9 @@ public class TestYarnClient {
         submitReservationTestHelper(client, arrival, deadline, duration)
             .getReservationId();
     context.setReservationID(reservationId);
-    context.setAMContainerSpec(ContainerLaunchContext.newInstance(new HashMap(),
-        new HashMap(), new ArrayList(), new HashMap(), null, new HashMap()));
+    ContainerLaunchContext amContainer
+        = Records.newRecord(ContainerLaunchContext.class);
+    context.setAMContainerSpec(amContainer);
     context.setAMContainerResourceRequest(ResourceRequest.newInstance(
         Priority.UNDEFINED, "", Resource.newInstance(1024, 1), 1));
     client.submitApplication(context);

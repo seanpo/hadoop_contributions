@@ -69,12 +69,13 @@ public class AppInfo {
   @XmlTransient
   private String schemePrefix;
 
+  private String reservationId;
+
   // these are ok for any user to see
   protected String id;
   protected String user;
   protected String name;
   protected String queue;
-  protected String reservationId;
   protected YarnApplicationState state;
   protected FinalApplicationStatus finalStatus;
   protected float progress;
@@ -165,9 +166,9 @@ public class AppInfo {
         this.priority = app.getApplicationPriority()
             .getPriority();
       }
-      ReservationId reservationId = app.getReservationId();
-      if (reservationId != null) {
-        this.reservationId = app.getReservationId().toString();
+      ReservationId resId = app.getReservationId();
+      if (resId != null) {
+        this.reservationId = resId.toString();
       }
       this.progress = app.getProgress() * 100;
       this.diagnostics = app.getDiagnostics().toString();

@@ -468,6 +468,8 @@ public abstract class ApplicationReport {
 
   /**
    * Set the {@link ReservationId} that the application is submitted to.
+   *
+   * @param reservationId the new {@link ReservationId} to set.
    */
   @Unstable
   public abstract void setReservationId(ReservationId reservationId);

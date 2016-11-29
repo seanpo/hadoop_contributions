@@ -70,8 +70,6 @@ public class TestReservationQueue {
     // create a queue
     PlanQueue pq = new PlanQueue(csContext, "root", null, null);
     reservationQueue = new ReservationQueue(csContext, "a", pq);
-    assertTrue(pq.getAbsoluteCapacity() == reservationQueue
-        .getAbsoluteCapacity());
     assertTrue(pq.getAbsoluteMaximumCapacity() == reservationQueue
         .getAbsoluteMaximumCapacity());
   }

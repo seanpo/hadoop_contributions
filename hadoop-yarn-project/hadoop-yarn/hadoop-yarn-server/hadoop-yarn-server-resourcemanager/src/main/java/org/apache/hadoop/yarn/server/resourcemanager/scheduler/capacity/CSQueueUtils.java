@@ -63,7 +63,7 @@ class CSQueueUtils {
    * - capacity <= maxCapacity
    * - absCapacity <= absMaximumCapacity
    */
-  private static void capacitiesSanityCheck(String queueName,
+  public static void capacitiesSanityCheck(String queueName,
       QueueCapacities queueCapacities) {
     for (String label : queueCapacities.getExistingNodeLabels()) {
       float capacity = queueCapacities.getCapacity(label);
@@ -97,30 +97,41 @@ class CSQueueUtils {
   }
 
   /**
-   * Do following steps for capacities
-   * - Load capacities from configuration
-   * - Update absolute capacities for new capacities
-   * - Check if capacities/absolute-capacities legal
+   * This method intends to be used by ReservationQueue, ReservationQueue will
+   * not appear in configuration file, so we shouldn't do load capacities
+   * settings in configuration for reservation queue.
+   */
+  public static void updateAndCheckCapacitiesByLabel(String queuePath,
+      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
+    updateAbsoluteCapacitiesByNodeLabels(queueCapacities,
+        parentQueueCapacities);
+
+    capacitiesSanityCheck(queuePath, queueCapacities);
+  }
+
+  /**
+   * Loads capacity information from configuration, updates the absolute
+   * capacities of the queue, and then performs a sanity check to ensure
+   * capacity values make sense.
+   *
+   * @param queuePath the path of the queue with which capacities are being
+   *          populated.
+   * @param csConf the {@link CapacitySchedulerConfiguration} to use when
+   *          loading capacities.
+   * @param queueCapacities the {@link QueueCapacities} belonging to the queue.
+   * @param parentQueueCapacities the {@link QueueCapacities} belonging to the
+   *          parent queue
    */
   public static void loadUpdateAndCheckCapacities(String queuePath,
       CapacitySchedulerConfiguration csConf,
       QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
-    loadUpdateAndCheckCapacities(queuePath, csConf, queueCapacities,
-        parentQueueCapacities, null);
-  }
-
-  public static void loadUpdateAndCheckCapacities(String queuePath,
-      CapacitySchedulerConfiguration csConf,
-      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities,
-      Set<String> whiteList) {
     loadCapacitiesByLabelsFromConf(queuePath, queueCapacities, csConf);
-
     updateAbsoluteCapacitiesByNodeLabels(queueCapacities,
-        parentQueueCapacities, whiteList);
+        parentQueueCapacities);
 
     capacitiesSanityCheck(queuePath, queueCapacities);
   }
-  
+
   private static void loadCapacitiesByLabelsFromConf(String queuePath,
       QueueCapacities queueCapacities, CapacitySchedulerConfiguration csConf) {
     queueCapacities.clearConfigurableFields();
@@ -148,22 +159,15 @@ class CSQueueUtils {
   }
   
   // Set absolute capacities for {capacity, maximum-capacity}
-  private static void updateAbsoluteCapacitiesByNodeLabels(
-      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities,
-      Set<String> whiteList) {
+  public static void updateAbsoluteCapacitiesByNodeLabels(
+      QueueCapacities queueCapacities, QueueCapacities parentQueueCapacities) {
     for (String label : queueCapacities.getExistingNodeLabels()) {
-      if (whiteList != null && whiteList.size() > 0 &&
-          !whiteList.contains(label)) {
-        continue;
-      }
       float capacity = queueCapacities.getCapacity(label);
-      if (capacity > 0f) {
-        queueCapacities.setAbsoluteCapacity(
-            label,
-            capacity
-                * (parentQueueCapacities == null ? 1 : parentQueueCapacities
-                    .getAbsoluteCapacity(label)));
-      }
+      queueCapacities.setAbsoluteCapacity(
+          label,
+          capacity
+              * (parentQueueCapacities == null ? 1 : parentQueueCapacities
+                  .getAbsoluteCapacity(label)));
 
       float maxCapacity = queueCapacities.getMaximumCapacity(label);
       if (maxCapacity > 0f) {

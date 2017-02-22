@@ -84,8 +84,8 @@ public abstract class PriorityReservationAgent
         makeRoomForReservation(reservationId, user, plan, contract);
 
     try {
-      boolean success =  agent.createReservation(reservationId, user, plan,
-          contract);
+      boolean success =
+          agent.createReservation(reservationId, user, plan, contract);
       addYieldedReservations(yieldedReservations, plan, reservationId);
       return success;
     } catch (PlanningException e) {
@@ -114,14 +114,16 @@ public abstract class PriorityReservationAgent
         makeRoomForReservation(reservationId, user, plan, contract);
 
     try {
-      return agent.updateReservation(reservationId, user, plan, contract);
+      boolean success =
+          agent.updateReservation(reservationId, user, plan, contract);
+      addYieldedReservations(yieldedReservations, plan, reservationId);
+      return success;
     } catch (PlanningException e) {
+      addYieldedReservations(yieldedReservations, plan, reservationId, true);
       LOG.info("Reservation=[" + reservationId + "] could not be added even "
           + "after removing lower priority reservations. Attempt to re-add the "
           + "removed reservations.");
       throw e;
-    } finally {
-      addYieldedReservations(yieldedReservations, plan, reservationId);
     }
   }
 
@@ -172,14 +174,8 @@ public abstract class PriorityReservationAgent
       ReservationDefinition definitionB =
           reservationB == null ? null : reservationB.getReservationDefinition();
 
-      if (definitionA == null && definitionB == null) {
-        return 0;
-      }
-      if (definitionA == null) {
-        return -1;
-      }
-      if (definitionB == null) {
-        return 1;
+      if (definitionA == null || definitionB == null) {
+        return definitionA == definitionB ? 0 : (definitionA == null ? -1 : 1);
       }
 
       return (int) (definitionA.getArrival() - definitionB.getArrival());

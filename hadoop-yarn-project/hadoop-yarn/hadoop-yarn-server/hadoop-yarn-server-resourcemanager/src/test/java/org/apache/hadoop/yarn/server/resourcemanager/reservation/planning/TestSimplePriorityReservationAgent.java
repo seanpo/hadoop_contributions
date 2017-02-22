@@ -657,6 +657,53 @@ public class TestSimplePriorityReservationAgent {
     assertReservationsInPlan(reservation1, reservation2);
   }
 
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testReservationReUpdateInArrivalOrderIfNoFitAfterAccommodation()
+      throws PlanningException {
+    // If the PriorityReservationAgent fails in adding the new reservation
+    // after yielding, the yielded reservations will be added in order of
+    // arrival time.
+    setPriorityScope(ReservationPriorityScope.QUEUE);
+    ReservationId reservation1 =
+        submitReservation(1, numContainers / 2, step, 10 * step, 9 * step);
+    ReservationId reservation2 =
+        submitReservation(3, numContainers / 2, 2 * step, 4 * step, 2 * step);
+    ReservationId reservation3 =
+        submitReservation(2, numContainers / 2, 3 * step, 10 * step, 6 * step);
+
+    // This update will fail, even with lower priority reservations removed.
+    boolean result = updateReservation(reservation1, 2 * numContainers);
+
+    // validate results, we expect the second one to be accepted
+    assertFalse("Reservation update should fail if it cannot fit.", result);
+    assertReservationsInPlan(reservation1, reservation2, reservation3);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testReservationReUpdateInPriorityOrderIfFitAfterAccommodation()
+      throws PlanningException {
+    setPriorityScope(ReservationPriorityScope.QUEUE);
+    // If the PriorityReservationAgent succeeds in adding the new reservation
+    // after yielding, the yielded reservations will be added in priority
+    // then arrival order.
+    ReservationId reservation1 =
+        submitReservation(1, numContainers / 4, step, 10 * step, 9 * step);
+    ReservationId reservation2 =
+        submitReservation(3, numContainers / 2, 2 * step, 4 * step, 2 * step);
+    ReservationId reservation3 =
+        submitReservation(2, numContainers / 2, 3 * step, 10 * step, 6 * step);
+
+    // This update will fail, even with lower priority reservations removed.
+    boolean result = updateReservation(reservation1, numContainers / 2);
+
+    // validate results, we expect the second one to be accepted
+    assertTrue("Reservation update should succeed if it can fit.", result);
+    assertReservationsInPlan(reservation1, reservation3);
+    assertReservationsNotInPlan(reservation2);
+  }
+
   private void setPriorityScope(ReservationPriorityScope scope) {
     conf.setEnum(CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
         scope);

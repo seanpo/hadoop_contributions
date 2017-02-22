@@ -82,8 +82,8 @@ public class TestSimplePriorityReservationAgent {
     String reservationQ =
         ReservationSystemTestUtil.getFullReservationQueueName();
 
-    conf = ReservationSystemTestUtil
-        .createConf(reservationQ, timeWindow, instConstraint, avgConstraint);
+    conf = ReservationSystemTestUtil.createConf(reservationQ, timeWindow,
+        instConstraint, avgConstraint);
 
     CapacityOverTimePolicy policy = new CapacityOverTimePolicy();
     policy.init(reservationQ, conf);
@@ -231,9 +231,8 @@ public class TestSimplePriorityReservationAgent {
     assertReservationsInPlan(reservation2, reservation3);
     assertReservationsNotInPlan(reservation1);
 
-    ReservationId reservation4 =
-        submitReservation(1, numContainers / 2, 2 * step, 6 * step, 4 * step,
-            "u2");
+    ReservationId reservation4 = submitReservation(1, numContainers / 2,
+        2 * step, 6 * step, 4 * step, "u2");
 
     // Reservation4 yields reservation2, because it is higher priority, even
     // if it is submitted with a different user.
@@ -258,9 +257,8 @@ public class TestSimplePriorityReservationAgent {
     assertReservationsInPlan(reservation2, reservation3);
     assertReservationsNotInPlan(reservation1);
 
-    ReservationId reservation4 =
-        submitReservation(2, numContainers / 2, 2 * step, 6 * step, 4 * step,
-            "u2");
+    ReservationId reservation4 = submitReservation(2, numContainers / 2,
+        2 * step, 6 * step, 4 * step, "u2");
 
     // Reservation2 starts earlier than reservation1, and has the same
     // priority. This means that reservation1 should be the first to be
@@ -275,12 +273,12 @@ public class TestSimplePriorityReservationAgent {
   public void testSubmitRemovalInArrivalOrderUnlessNoFit()
       throws PlanningException {
     setPriorityScope(ReservationPriorityScope.QUEUE);
-    ReservationId reservation1 = submitReservation(
-        2, (int) (0.4 * numContainers), 3 * step, 7 * step, 4 * step);
-    ReservationId reservation2 = submitReservation(
-        2, (int) (0.6 * numContainers), step, 5 * step, 4 * step);
-    ReservationId reservation3 = submitReservation(
-        1, (int) (0.5 * numContainers), 2 * step, 6 * step, 4 * step, "u2");
+    ReservationId reservation1 = submitReservation(2,
+        (int) (0.4 * numContainers), 3 * step, 7 * step, 4 * step);
+    ReservationId reservation2 = submitReservation(2,
+        (int) (0.6 * numContainers), step, 5 * step, 4 * step);
+    ReservationId reservation3 = submitReservation(1,
+        (int) (0.5 * numContainers), 2 * step, 6 * step, 4 * step, "u2");
 
     // Reservation2 is deleted despite starting earlier because deleting
     // reservation1 would not have caused reservation3 to fit.
@@ -293,12 +291,12 @@ public class TestSimplePriorityReservationAgent {
   public void testSubmitRemovalInPriorityOrderUnlessNoFit()
       throws PlanningException {
     setPriorityScope(ReservationPriorityScope.QUEUE);
-    ReservationId reservation1 = submitReservation(
-        3, (int) (0.4 * numContainers), 3 * step, 7 * step, 4 * step);
-    ReservationId reservation2 = submitReservation(
-        2, (int) (0.6 * numContainers), step, 5 * step, 4 * step);
-    ReservationId reservation3 = submitReservation(
-        1, (int) (0.5 * numContainers), 2 * step, 6 * step, 4 * step, "u2");
+    ReservationId reservation1 = submitReservation(3,
+        (int) (0.4 * numContainers), 3 * step, 7 * step, 4 * step);
+    ReservationId reservation2 = submitReservation(2,
+        (int) (0.6 * numContainers), step, 5 * step, 4 * step);
+    ReservationId reservation3 = submitReservation(1,
+        (int) (0.5 * numContainers), 2 * step, 6 * step, 4 * step, "u2");
 
     // Reservation2 is deleted despite having a higher priority because deleting
     // reservation1 would not have caused reservation3 to fit.
@@ -374,6 +372,48 @@ public class TestSimplePriorityReservationAgent {
 
   @SuppressWarnings("javadoc")
   @Test
+  public void testReservationReAddInArrivalOrderIfNoFitAfterAccommodation()
+      throws PlanningException {
+    // If the PriorityReservationAgent fails in adding the new reservation
+    // after yielding, the yielded reservations will be added in order of
+    // arrival time.
+    setPriorityScope(ReservationPriorityScope.QUEUE);
+    ReservationId reservation1 =
+        submitReservation(1, numContainers / 2, step, 10 * step, 9 * step);
+    ReservationId reservation2 =
+        submitReservation(3, numContainers / 2, 2 * step, 4 * step, 2 * step);
+    ReservationId reservation3 =
+        submitReservation(2, numContainers / 2, 3 * step, 10 * step, 6 * step);
+    ReservationId reservation4 =
+        submitReservation(1, numContainers, step, 10 * step, 9 * step);
+
+    assertReservationsInPlan(reservation1, reservation2, reservation3);
+    assertReservationsNotInPlan(reservation4);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
+  public void testReservationReAddInPriorityOrderIfFitAfterAccommodation()
+      throws PlanningException {
+    setPriorityScope(ReservationPriorityScope.QUEUE);
+    // If the PriorityReservationAgent succeeds in adding the new reservation
+    // after yielding, the yielded reservations will be added in priority
+    // then arrival order.
+    ReservationId reservation1 =
+        submitReservation(1, numContainers / 3, step, 10 * step, 9 * step);
+    ReservationId reservation2 =
+        submitReservation(3, numContainers / 3, 2 * step, 4 * step, 2 * step);
+    ReservationId reservation3 =
+        submitReservation(2, numContainers / 3, 3 * step, 10 * step, 6 * step);
+    ReservationId reservation4 =
+        submitReservation(1, numContainers / 3, step, 10 * step, 9 * step);
+
+    assertReservationsInPlan(reservation1, reservation3, reservation4);
+    assertReservationsNotInPlan(reservation2);
+  }
+
+  @SuppressWarnings("javadoc")
+  @Test
   public void testUpdateSimple() throws PlanningException {
     setPriorityScope(ReservationPriorityScope.QUEUE);
     ReservationId reservation1 = submitReservation(1, numContainers / 2);
@@ -420,8 +460,10 @@ public class TestSimplePriorityReservationAgent {
     ReservationId reservation2 = submitReservation(1, numContainers / 2);
     boolean result = updateReservation(reservation2, numContainers);
 
-    assertFalse("Reservation update should not succeed because the " +
-        "increasing the reservation size will cause it not to fit.", result);
+    assertFalse(
+        "Reservation update should not succeed because the "
+            + "increasing the reservation size will cause it not to fit.",
+        result);
     assertReservationsInPlan(reservation1, reservation2);
   }
 
@@ -455,8 +497,10 @@ public class TestSimplePriorityReservationAgent {
 
     boolean result = updateReservation(reservation3, numContainers);
 
-    assertFalse("Reservation update should not succeed because not " +
-        "enough reservations can be yielded to accept the update.", result);
+    assertFalse(
+        "Reservation update should not succeed because not "
+            + "enough reservations can be yielded to accept the update.",
+        result);
     assertReservationsInPlan(reservation1, reservation2, reservation3);
 
     result = updateReservation(reservation3, containers * 2);
@@ -515,14 +559,14 @@ public class TestSimplePriorityReservationAgent {
   public void testUpdateRemovalInPriorityThenArrivalOrderUnlessNoFit()
       throws PlanningException {
     setPriorityScope(ReservationPriorityScope.QUEUE);
-    ReservationId reservation1 = submitReservation(
-        2, (int) (0.2 * numContainers), 3 * step, 7 * step, 4 * step);
+    ReservationId reservation1 = submitReservation(2,
+        (int) (0.2 * numContainers), 3 * step, 7 * step, 4 * step);
     // This should get removed despite the earlier arrival time because it
     // cannot fit with the higher priority reservation.
-    ReservationId reservation2 = submitReservation(
-        2, (int) (0.6 * numContainers), step, 5 * step, 4 * step);
-    ReservationId reservation3 = submitReservation(
-        1, (int) (0.2 * numContainers), 2 * step, 6 * step, 4 * step);
+    ReservationId reservation2 = submitReservation(2,
+        (int) (0.6 * numContainers), step, 5 * step, 4 * step);
+    ReservationId reservation3 = submitReservation(1,
+        (int) (0.2 * numContainers), 2 * step, 6 * step, 4 * step);
 
     boolean result =
         updateReservation(reservation3, (int) (0.7 * numContainers));

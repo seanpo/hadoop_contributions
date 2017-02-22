@@ -27,19 +27,21 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 
+import java.io.Serializable;
+import java.util.Comparator;
 import java.util.List;
 
 /**
  * This {@link ReservationAgent} is an abstract agent that wraps other
  * ReservationAgents to make them priority aware.
  *
- * {@link PriorityReservationAgent} will attempt to interact with the plan
- * using the inner {@link ReservationAgent}. If this fails, it will attempt to
- * accommodate for the reservation based on the method defined in the
+ * {@link PriorityReservationAgent} will attempt to interact with the plan using
+ * the inner {@link ReservationAgent}. If this fails, it will attempt to make
+ * room for the reservation based on the method defined in the
  * PriorityReservationAgent subclass.
  */
-public abstract class PriorityReservationAgent implements ReservationAgent,
-    Configurable {
+public abstract class PriorityReservationAgent
+    implements ReservationAgent, Configurable {
 
   private ReservationAgent agent;
 
@@ -47,10 +49,10 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
       LogFactory.getLog(PriorityReservationAgent.class.getName());
 
   /**
-   * Accommodate for an incoming reservation by attempting to remove other
+   * Make room for an incoming reservation by attempting to remove other
    * reservations in the queue.
    *
-   * @param reservationId the identifier of the reservation to be accommodated
+   * @param reservationId the identifier of the reservation to be make roomd
    *          for.
    * @param user the user who the reservation belongs to
    * @param plan the Plan to which the reservation must be fitted
@@ -58,10 +60,11 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
    *          reservation
    *
    * @return an ordered list of {@link ReservationAllocation} that were removed
-   *         in order to fit the incoming reservation.
+   *         to fit the incoming reservation. The order of the list determines
+   *         the order of reservations that will be recreated.
    * @throws PlanningException if the reservation cannot be fitted into the plan
    */
-  public abstract List<ReservationAllocation> accommodateForReservation(
+  public abstract List<ReservationAllocation> makeRoomForReservation(
       ReservationId reservationId, String user, Plan plan,
       ReservationDefinition contract) throws PlanningException;
 
@@ -73,22 +76,25 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
     } catch (PlanningException e) {
       LOG.info("Encountered planning exception for reservation=["
           + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
-          + " when creating the reservation. Attempt to accommodate for "
+          + " when creating the reservation. Attempt to make room for "
           + "reservation by removing lower priority reservations. Exception=["
           + e.getMessage() + "]");
     }
     List<ReservationAllocation> yieldedReservations =
-        accommodateForReservation(reservationId, user, plan, contract);
+        makeRoomForReservation(reservationId, user, plan, contract);
 
     try {
-      return agent.createReservation(reservationId, user, plan, contract);
+      boolean success =  agent.createReservation(reservationId, user, plan,
+          contract);
+      addYieldedReservations(yieldedReservations, plan, reservationId);
+      return success;
     } catch (PlanningException e) {
+      // Reset the plan back to its original state.
+      addYieldedReservations(yieldedReservations, plan, reservationId, true);
       LOG.info("Reservation=[" + reservationId + "] could not be added even "
           + "after removing lower priority reservations. Attempt to re-add the "
           + "removed reservations.");
       throw e;
-    } finally {
-      addYieldedReservations(yieldedReservations, plan, reservationId);
     }
   }
 
@@ -100,12 +106,12 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
     } catch (PlanningException e) {
       LOG.info("Encountered planning exception for reservation=["
           + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
-          + " when creating the reservation. Attempt to accommodate for "
+          + " when creating the reservation. Attempt to make room for "
           + "reservation by removing lower priority reservations. Exception=["
           + e.getMessage() + "]");
     }
     List<ReservationAllocation> yieldedReservations =
-        accommodateForReservation(reservationId, user, plan, contract);
+        makeRoomForReservation(reservationId, user, plan, contract);
 
     try {
       return agent.updateReservation(reservationId, user, plan, contract);
@@ -121,6 +127,16 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
 
   private void addYieldedReservations(List<ReservationAllocation> reservations,
       Plan plan, ReservationId reservationId) {
+    addYieldedReservations(reservations, plan, reservationId, false);
+  }
+
+  private void addYieldedReservations(List<ReservationAllocation> reservations,
+      Plan plan, ReservationId reservationId, boolean addInOrderOfAcceptance) {
+    if (addInOrderOfAcceptance) {
+      // Order by arrival time.
+      reservations.sort(new ArrivalTimeComparator());
+    }
+
     for (ReservationAllocation reservation : reservations) {
       try {
         agent.createReservation(reservation.getReservationId(),
@@ -145,6 +161,29 @@ public abstract class PriorityReservationAgent implements ReservationAgent,
 
   public void setAgent(ReservationAgent newAgent) {
     agent = newAgent;
+  }
+
+  private static class ArrivalTimeComparator
+      implements Comparator<ReservationAllocation>, Serializable {
+    public int compare(ReservationAllocation reservationA,
+        ReservationAllocation reservationB) {
+      ReservationDefinition definitionA =
+          reservationA == null ? null : reservationA.getReservationDefinition();
+      ReservationDefinition definitionB =
+          reservationB == null ? null : reservationB.getReservationDefinition();
+
+      if (definitionA == null && definitionB == null) {
+        return 0;
+      }
+      if (definitionA == null) {
+        return -1;
+      }
+      if (definitionB == null) {
+        return 1;
+      }
+
+      return (int) (definitionA.getArrival() - definitionB.getArrival());
+    }
   }
 
 }

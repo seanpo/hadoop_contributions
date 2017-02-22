@@ -44,7 +44,7 @@ public class ReservationDefinitionInfo {
   @XmlElement(name = "reservation-name")
   private String reservationName;
 
-  @XmlElement(name = "priority")
+  @XmlElement(name = "priority", defaultValue = "-1")
   private int priority;
 
   public ReservationDefinitionInfo() {
@@ -57,6 +57,7 @@ public class ReservationDefinitionInfo {
     reservationName = definition.getReservationName();
     reservationRequests = new ReservationRequestsInfo(definition
             .getReservationRequests());
+    priority = definition.getPriority().getPriority();
   }
 
   public long getArrival() {

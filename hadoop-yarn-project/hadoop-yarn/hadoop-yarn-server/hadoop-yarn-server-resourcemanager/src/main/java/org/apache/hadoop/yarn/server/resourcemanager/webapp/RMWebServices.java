@@ -1123,9 +1123,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   @Path(RMWSConsts.GET_NODE_LABELS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
       MediaType.APPLICATION_XML + "; " + JettyUtils.UTF_8 })
+<<<<<<< HEAD
   @Override
   public NodeLabelsInfo getClusterNodeLabels(@Context HttpServletRequest hsr)
       throws IOException {
+=======
+  public NodeLabelsInfo getClusterNodeLabels(@Context HttpServletRequest hsr)
+    throws IOException {
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
     init();
 
     List<NodeLabel> nodeLabels =
@@ -1540,6 +1545,20 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
     return staticUser.equals(callerUGI.getUserName());
   }
 
+<<<<<<< HEAD
+=======
+  /**
+   * Generates a new ApplicationId which is then sent to the client
+   *
+   * @param hsr
+   *          the servlet request
+   * @return Response containing the app id and the maximum resource
+   *         capabilities
+   * @throws AuthorizationException
+   * @throws IOException
+   * @throws InterruptedException
+   */
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
   @POST
   @Path(RMWSConsts.APPS_NEW_APPLICATION)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1566,6 +1585,22 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   // reuse the code in ClientRMService to create new app
   // get the new app id and submit app
   // set location header with new app location
+<<<<<<< HEAD
+=======
+  /**
+   * Function to submit an app to the RM
+   *
+   * @param newApp
+   *          structure containing information to construct the
+   *          ApplicationSubmissionContext
+   * @param hsr
+   *          the servlet request
+   * @return Response containing the status code
+   * @throws AuthorizationException
+   * @throws IOException
+   * @throws InterruptedException
+   */
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
   @POST
   @Path(RMWSConsts.APPS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1619,7 +1654,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   /**
    * Function that actually creates the ApplicationId by calling the
    * ClientRMService
-   * 
+   *
    * @return returns structure containing the app-id and maximum resource
    *         capabilities
    */
@@ -1643,8 +1678,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   /**
    * Create the actual ApplicationSubmissionContext to be submitted to the RM
    * from the information provided by the user.
+<<<<<<< HEAD
    * 
    * @param newApp the information provided by the user
+=======
+   *
+   * @param newApp
+   *          the information provided by the user
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
    * @return returns the constructed ApplicationSubmissionContext
    * @throws IOException
    */
@@ -1710,8 +1751,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
    * Create the ContainerLaunchContext required for the
    * ApplicationSubmissionContext. This function takes the user information and
    * generates the ByteBuffer structures required by the ContainerLaunchContext
+<<<<<<< HEAD
    * 
    * @param newApp the information provided by the user
+=======
+   *
+   * @param newApp
+   *          the information provided by the user
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
    * @return created context
    * @throws BadRequestException
    * @throws IOException
@@ -1758,8 +1805,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   /**
    * Generate a Credentials object from the information in the CredentialsInfo
    * object.
+<<<<<<< HEAD
    * 
    * @param credentials the CredentialsInfo provided by the user.
+=======
+   *
+   * @param credentials
+   *          the CredentialsInfo provided by the user.
+>>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
    * @return
    */
   private Credentials createCredentials(CredentialsInfo credentials) {

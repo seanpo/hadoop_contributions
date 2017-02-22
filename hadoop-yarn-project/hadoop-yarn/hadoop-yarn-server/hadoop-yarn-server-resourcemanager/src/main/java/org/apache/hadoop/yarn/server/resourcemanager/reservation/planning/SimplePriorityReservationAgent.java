@@ -19,6 +19,7 @@
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationPriorityScope;
@@ -59,7 +60,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     setConf(conf);
   }
 
-  public List<ReservationAllocation> accommodateForReservation(
+  public List<ReservationAllocation> makeRoomForReservation(
       ReservationId reservationId, String user, Plan plan,
       ReservationDefinition contract) throws PlanningException {
 
@@ -79,8 +80,8 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     List<ReservationAllocation> yieldedReservations = new ArrayList<>();
 
     for (ReservationAllocation reservation : reservations) {
-      if (contract.getPriority().getPriority() <
-          reservation.getReservationDefinition().getPriority().getPriority()) {
+      if (contract.getPriority().getPriority() < reservation
+          .getReservationDefinition().getPriority().getPriority()) {
         yieldedReservations.add(reservation);
         plan.deleteReservation(reservation.getReservationId());
       }
@@ -100,9 +101,9 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
   }
 
   private void reinitialize(Configuration conf) {
-    scope = conf.getEnum(
-        CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
-        CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
+    scope =
+        conf.getEnum(CapacitySchedulerConfiguration.RESERVATION_PRIORITY_SCOPE,
+            CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
   }
 
   private static class ReservationComparator
@@ -111,19 +112,29 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     public int compare(ReservationAllocation reservationA,
         ReservationAllocation reservationB) {
       ReservationDefinition definitionA =
-          reservationA.getReservationDefinition();
+          reservationA == null ? null : reservationA.getReservationDefinition();
       ReservationDefinition definitionB =
-          reservationB.getReservationDefinition();
-      if (definitionA.getPriority().getPriority() == definitionB.getPriority()
-          .getPriority()) {
-        return compare(definitionA.getArrival(), definitionB.getArrival());
-      }
-      return compare(definitionA.getPriority().getPriority(),
-          definitionB.getPriority().getPriority());
-    }
+          reservationB == null ? null : reservationB.getReservationDefinition();
 
-    public int compare(long a, long b) {
-      return a > b ? 1 : (a < b ? -1 : 0);
+      if (definitionA == null || definitionB == null) {
+        return definitionA == definitionB ? 0 : (definitionA == null ? -1 : 1);
+      }
+
+      Priority priorityA = definitionA.getPriority();
+      Priority priorityB = definitionB.getPriority();
+      if (priorityA == null && priorityB != null) {
+        return -1;
+      }
+      if (priorityA != null && priorityB == null) {
+        return 1;
+      }
+
+      if ((priorityA == null && priorityB == null)
+          || priorityA.getPriority() == priorityB.getPriority()) {
+        return (int) (definitionA.getArrival() - definitionB.getArrival());
+      }
+      return definitionA.getPriority().getPriority()
+          - definitionB.getPriority().getPriority();
     }
   }
 

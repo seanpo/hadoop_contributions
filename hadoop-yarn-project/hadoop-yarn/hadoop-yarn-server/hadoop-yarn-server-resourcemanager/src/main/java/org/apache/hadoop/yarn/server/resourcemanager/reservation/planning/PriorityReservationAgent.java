@@ -190,7 +190,7 @@ public abstract class PriorityReservationAgent
     agent = newAgent;
   }
 
-  protected Priority normalizePriority(Priority priority) {
+  private Priority normalizePriority(Priority priority) {
     // Undefined priority is -1, but if for some user error, the priority
     // is less than 0, turn it into maxInt.
     if (priority == null || priority.getPriority() < 0) {

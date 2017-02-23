@@ -186,7 +186,9 @@ public abstract class ReservationDefinition {
    * indicates a higher priority reservation. Recurring reservations are
    * always higher priority than non-recurring reservations. Priority for
    * non-recurring reservations are only compared with non-recurring
-   * reservations. Likewise for recurring reservations.
+   * reservations. Likewise for recurring reservations. If the priority is not
+   * provided in the {@link ReservationDefinition} then the lowest possible
+   * priority will be used.
    *
    * @return {@link Priority} representing the priority of the reserved resource
    *         allocation in the scheduler

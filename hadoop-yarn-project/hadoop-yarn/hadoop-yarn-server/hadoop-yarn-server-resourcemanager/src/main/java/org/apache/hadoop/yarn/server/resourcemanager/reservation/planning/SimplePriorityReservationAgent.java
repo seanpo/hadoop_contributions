@@ -19,13 +19,11 @@
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.ReservationPriorityScope;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +54,6 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
   private ReservationPriorityScope scope;
   private Configuration configuration;
-
-  public SimplePriorityReservationAgent() {
-    this(new Configuration());
-  }
 
   public SimplePriorityReservationAgent(Configuration conf) {
     setConf(conf);
@@ -110,7 +104,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
       }
     }
 
-    yieldedReservations.sort(new ReservationComparator());
+    yieldedReservations.sort(new ReservationPriorityComparator());
     return yieldedReservations;
   }
 
@@ -129,7 +123,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
             CapacitySchedulerConfiguration.DEFAULT_RESERVATION_PRIORITY_SCOPE);
   }
 
-  private static class ReservationComparator
+  private static class ReservationPriorityComparator
       implements Comparator<ReservationAllocation>, Serializable {
 
     public int compare(ReservationAllocation reservationA,
@@ -143,31 +137,14 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
         return definitionA == definitionB ? 0 : (definitionA == null ? -1 : 1);
       }
 
-      Priority priorityA = definitionA.getPriority();
-      Priority priorityB = definitionB.getPriority();
+      int priorityA = definitionA.getPriority().getPriority();
+      int priorityB = definitionB.getPriority().getPriority();
 
-      if (priorityA == null && priorityB != null) {
-        return -1;
-      }
-      if (priorityB == null && priorityA != null) {
-        return 1;
-      }
-
-      if (priorityA == null && priorityB == null
-          || priorityA.getPriority() == priorityB.getPriority()) {
+      if (priorityA == priorityB) {
         return (int) (definitionA.getArrival() - definitionB.getArrival());
       }
-      return normalizePriority(priorityA.getPriority())
-          - normalizePriority(priorityB.getPriority());
-    }
 
-    private int normalizePriority(int priority) {
-      // Undefined priority is -1, but if for some user error, the priority
-      // is less than 0, turn it into maxInt.
-      if (priority < 0) {
-        return Integer.MAX_VALUE;
-      }
-      return priority;
+      return priorityA - priorityB;
     }
   }
 

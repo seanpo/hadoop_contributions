@@ -21,6 +21,7 @@ package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
@@ -87,6 +88,10 @@ public abstract class PriorityReservationAgent
           + "reservation by removing lower priority reservations. Exception=["
           + e.getMessage() + "]");
     }
+
+    // Normalize priority to ensure that ReservationDefinitions with invalid
+    // priority have the lowest possible priority.
+    contract.setPriority(normalizePriority(contract.getPriority()));
     List<ReservationAllocation> yieldedReservations =
         makeRoomForReservation(reservationId, user, plan, contract);
 
@@ -120,6 +125,10 @@ public abstract class PriorityReservationAgent
           + "reservation by removing lower priority reservations. Exception=["
           + e.getMessage() + "]");
     }
+
+    // Normalize priority to ensure that ReservationDefinitions with invalid
+    // priority have the lowest possible priority.
+    contract.setPriority(normalizePriority(contract.getPriority()));
     List<ReservationAllocation> yieldedReservations =
         makeRoomForReservation(reservationId, user, plan, contract);
 
@@ -147,7 +156,6 @@ public abstract class PriorityReservationAgent
   private void addYieldedReservations(List<ReservationAllocation> reservations,
       Plan plan, ReservationId reservationId, boolean addInOrderOfAcceptance) {
     if (addInOrderOfAcceptance) {
-      // Order by arrival time.
       reservations.sort(new ArrivalTimeComparator());
     }
 
@@ -180,6 +188,15 @@ public abstract class PriorityReservationAgent
 
   public void setAgent(ReservationAgent newAgent) {
     agent = newAgent;
+  }
+
+  protected Priority normalizePriority(Priority priority) {
+    // Undefined priority is -1, but if for some user error, the priority
+    // is less than 0, turn it into maxInt.
+    if (priority == null || priority.getPriority() < 0) {
+      return Priority.newInstance(Integer.MAX_VALUE);
+    }
+    return priority;
   }
 
   private static class ArrivalTimeComparator

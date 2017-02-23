@@ -16,6 +16,15 @@
                "memory" : 1024,
                "vCores" : 1
              }
+           },
+           {
+             "duration" : %s,
+             "num-containers" : 110,
+             "min-concurrency" : 110,
+             "capability" : {
+               "memory" : 1024,
+               "vCores" : 1
+             }
            }
         ]
      }

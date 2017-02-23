@@ -94,7 +94,7 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
 
   private static MockRM rm;
 
-  private static final int MINIMUM_RESOURCE_DURATION = 10000;
+  private static final int MINIMUM_RESOURCE_DURATION = 1000000;
   private static final Clock clock = new UTCClock();
   private static final String TEST_DIR = new File(System.getProperty(
       "test.build.data", "/tmp")).getAbsolutePath();
@@ -963,7 +963,7 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
           MediaType.APPLICATION_JSON);
       AppInfo info = response2.getEntity(AppInfo.class);
 
-      assertTrue(info.getReservationId().equals(rid.toString()));
+      assertEquals(rid.toString(), info.getReservationId());
     }
 
     rm.stop();
@@ -1157,7 +1157,8 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
 
     assertEquals("0", type);
     assertEquals((int) Math.floor(0.9 * MINIMUM_RESOURCE_DURATION),
-        requests.getJSONObject("reservation-request").getInt("duration"));
+        requests.getJSONArray("reservation-request").getJSONObject(0)
+            .getInt("duration"));
   }
 
   private JSONObject testListReservationHelper(WebResource resource) throws

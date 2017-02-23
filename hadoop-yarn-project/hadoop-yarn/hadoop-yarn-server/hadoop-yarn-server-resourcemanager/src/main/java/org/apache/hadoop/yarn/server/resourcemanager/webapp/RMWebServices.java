@@ -368,7 +368,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
     if (sched == null) {
       throw new NotFoundException("Null ResourceScheduler instance");
     }
-
+    
     EnumSet<NodeState> acceptedStates;
     if (states == null) {
       acceptedStates = EnumSet.allOf(NodeState.class);
@@ -392,7 +392,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
       }
       nodesInfo.add(nodeInfo);
     }
-
+    
     return nodesInfo;
   }
 
@@ -997,7 +997,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
 
     return Response.status(Status.OK).entity(ret).build();
   }
-
+  
   @GET
   @Path(RMWSConsts.GET_NODE_TO_LABELS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1124,11 +1124,15 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
       MediaType.APPLICATION_XML + "; " + JettyUtils.UTF_8 })
 <<<<<<< HEAD
+<<<<<<< HEAD
   @Override
   public NodeLabelsInfo getClusterNodeLabels(@Context HttpServletRequest hsr)
       throws IOException {
 =======
   public NodeLabelsInfo getClusterNodeLabels(@Context HttpServletRequest hsr)
+=======
+  public NodeLabelsInfo getClusterNodeLabels(@Context HttpServletRequest hsr) 
+>>>>>>> Remove spurious changes, and fix handling of undefined priority.
     throws IOException {
 >>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
     init();
@@ -1139,7 +1143,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
 
     return ret;
   }
-
+  
   @POST
   @Path(RMWSConsts.ADD_NODE_LABELS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1148,7 +1152,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   public Response addToClusterNodeLabels(final NodeLabelsInfo newNodeLabels,
       @Context HttpServletRequest hsr) throws Exception {
     init();
-
+    
     UserGroupInformation callerUGI = getCallerUserGroupInformation(hsr, true);
     if (callerUGI == null) {
       String msg = "Unable to obtain user name, user not authenticated for"
@@ -1160,18 +1164,18 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
           + " for post to .../add-node-labels ";
       throw new AuthorizationException(msg);
     }
-
+    
     try {
       rm.getRMContext().getNodeLabelManager()
           .addToCluserNodeLabels(newNodeLabels.getNodeLabels());
     } catch (IOException e) {
       throw new BadRequestException(e);
     }
-
+            
     return Response.status(Status.OK).build();
 
   }
-
+  
   @POST
   @Path(RMWSConsts.REMOVE_NODE_LABELS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1203,7 +1207,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
 
     return Response.status(Status.OK).build();
   }
-
+  
   @GET
   @Path(RMWSConsts.NODES_NODEID_GETLABELS)
   @Produces({ MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8,
@@ -1549,7 +1553,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
 =======
   /**
    * Generates a new ApplicationId which is then sent to the client
-   *
+   * 
    * @param hsr
    *          the servlet request
    * @return Response containing the app id and the maximum resource
@@ -1589,7 +1593,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
 =======
   /**
    * Function to submit an app to the RM
-   *
+   * 
    * @param newApp
    *          structure containing information to construct the
    *          ApplicationSubmissionContext
@@ -1654,7 +1658,7 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
   /**
    * Function that actually creates the ApplicationId by calling the
    * ClientRMService
-   *
+   * 
    * @return returns structure containing the app-id and maximum resource
    *         capabilities
    */
@@ -1679,10 +1683,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
    * Create the actual ApplicationSubmissionContext to be submitted to the RM
    * from the information provided by the user.
 <<<<<<< HEAD
+<<<<<<< HEAD
    * 
    * @param newApp the information provided by the user
 =======
    *
+=======
+   * 
+>>>>>>> Remove spurious changes, and fix handling of undefined priority.
    * @param newApp
    *          the information provided by the user
 >>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
@@ -1752,10 +1760,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
    * ApplicationSubmissionContext. This function takes the user information and
    * generates the ByteBuffer structures required by the ContainerLaunchContext
 <<<<<<< HEAD
+<<<<<<< HEAD
    * 
    * @param newApp the information provided by the user
 =======
    *
+=======
+   * 
+>>>>>>> Remove spurious changes, and fix handling of undefined priority.
    * @param newApp
    *          the information provided by the user
 >>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.
@@ -1806,10 +1818,14 @@ public class RMWebServices extends WebServices implements RMWebServiceProtocol {
    * Generate a Credentials object from the information in the CredentialsInfo
    * object.
 <<<<<<< HEAD
+<<<<<<< HEAD
    * 
    * @param credentials the CredentialsInfo provided by the user.
 =======
    *
+=======
+   * 
+>>>>>>> Remove spurious changes, and fix handling of undefined priority.
    * @param credentials
    *          the CredentialsInfo provided by the user.
 >>>>>>> Replaced accommodate for with makeroomFor. Add code to re-add reservations in arrival order if the reservation does not get accepted even after yelding some jobs, and add test. Deal with null imputs using ReservationComparator. Make default reservationDefinitionInfo priority -1 for undefined.

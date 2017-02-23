@@ -27,6 +27,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -49,6 +51,9 @@ import java.util.Set;
  */
 public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
+  private static final Logger LOG =
+      LoggerFactory.getLogger(SimplePriorityReservationAgent.class);
+
   private ReservationPriorityScope scope;
   private Configuration configuration;
 
@@ -62,7 +67,7 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
   public List<ReservationAllocation> makeRoomForReservation(
       ReservationId reservationId, String user, Plan plan,
-      ReservationDefinition contract) throws PlanningException {
+      ReservationDefinition contract) {
 
     Set<ReservationAllocation> reservations;
     switch (scope) {
@@ -82,8 +87,26 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
     for (ReservationAllocation reservation : reservations) {
       if (contract.getPriority().getPriority() < reservation
           .getReservationDefinition().getPriority().getPriority()) {
-        yieldedReservations.add(reservation);
-        plan.deleteReservation(reservation.getReservationId());
+        boolean success;
+
+        // Try to delete the reservation. If fail, then do not add it to the
+        // yielded list, or else it will be re-added as per the
+        // PriorityReservationAgent contract. InMemoryPlan currently only
+        // throws unchecked exceptions, which will only be thrown in the
+        // event that the reservation with the provided id doesn't exist.
+        try {
+          success = plan.deleteReservation(reservation.getReservationId());
+        } catch (Exception e) {
+          LOG.error("Encountered exception when deleting reservation with "
+              + "id=[" + reservation.getReservationId().toString() + "] for "
+              + "yielding to a higher priority reservation with id=["
+              + reservationId.toString() + "] due to exception=["
+              + e.getMessage() + "].");
+          success = false;
+        }
+        if (success) {
+          yieldedReservations.add(reservation);
+        }
       }
     }
 
@@ -122,19 +145,29 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
 
       Priority priorityA = definitionA.getPriority();
       Priority priorityB = definitionB.getPriority();
+
       if (priorityA == null && priorityB != null) {
         return -1;
       }
-      if (priorityA != null && priorityB == null) {
+      if (priorityB == null && priorityA != null) {
         return 1;
       }
 
-      if ((priorityA == null && priorityB == null)
+      if (priorityA == null && priorityB == null
           || priorityA.getPriority() == priorityB.getPriority()) {
         return (int) (definitionA.getArrival() - definitionB.getArrival());
       }
-      return definitionA.getPriority().getPriority()
-          - definitionB.getPriority().getPriority();
+      return normalizePriority(priorityA.getPriority())
+          - normalizePriority(priorityB.getPriority());
+    }
+
+    private int normalizePriority(int priority) {
+      // Undefined priority is -1, but if for some user error, the priority
+      // is less than 0, turn it into maxInt.
+      if (priority < 0) {
+        return Integer.MAX_VALUE;
+      }
+      return priority;
     }
   }
 

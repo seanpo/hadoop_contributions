@@ -387,9 +387,9 @@ public class ReservationACLsTestBase extends ACLsTestBase {
     long arrival = System.currentTimeMillis();
 
     String reservationName = UUID.randomUUID().toString();
-    return ReservationDefinition.newInstance(arrival,
-        arrival + (int) (defaultDuration * 1.1), defaultRequests,
-        reservationName);
+    return ReservationDefinition.newInstance
+        (arrival, arrival + (int) (defaultDuration * 1.1), defaultRequests,
+                reservationName);
   }
 
   private ReservationListResponse listReservationById(String lister,

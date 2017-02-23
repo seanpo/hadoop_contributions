@@ -79,6 +79,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.ReservationDeleteResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationListRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationListResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.SignalContainerRequest;
@@ -1341,7 +1342,9 @@ public class TestYarnClient {
     ReservationId reservationID = client.createReservation().getReservationId();
     ReservationSubmissionRequest sRequest = createSimpleReservationRequest(
         reservationID, 4, arrival, deadline, duration);
-    Assert.assertNotNull(client.submitReservation(sRequest));
+    ReservationSubmissionResponse sResponse =
+        client.submitReservation(sRequest);
+    Assert.assertNotNull(sResponse);
     Assert.assertNotNull(reservationID);
     System.out.println("Submit reservation response: " + reservationID);
 

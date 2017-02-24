@@ -77,32 +77,36 @@ public abstract class PriorityReservationAgent
 
   public boolean createReservation(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
+    List<ReservationAllocation> yieldedReservations = null;
     writeLock.lock();
     try {
-      agent.createReservation(reservationId, user, plan, contract);
-      return true;
-    } catch (PlanningException e) {
-      LOG.info("Encountered planning exception for reservation=["
-          + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
-          + " when creating the reservation. Attempt to make room for "
-          + "reservation by removing lower priority reservations. Exception=["
-          + e.getMessage() + "]");
-    }
+      try {
+        agent.createReservation(reservationId, user, plan, contract);
+        return true;
+      } catch (PlanningException e) {
+        LOG.info("Encountered planning exception for reservation=["
+            + reservationId.toString() + "] in plan=[" + plan.getQueueName()
+            + "]" + " when creating the reservation. Attempt to make room for "
+            + "reservation by removing lower priority reservations. Exception=["
+            + e.getMessage() + "]");
+      }
 
-    // Normalize priority to ensure that ReservationDefinitions with invalid
-    // priority have the lowest possible priority.
-    contract.setPriority(normalizePriority(contract.getPriority()));
-    List<ReservationAllocation> yieldedReservations =
-        makeRoomForReservation(reservationId, user, plan, contract);
+      // Normalize priority to ensure that ReservationDefinitions with invalid
+      // priority have the lowest possible priority.
+      contract.setPriority(normalizePriority(contract.getPriority()));
+      yieldedReservations =
+          makeRoomForReservation(reservationId, user, plan, contract);
 
-    try {
       boolean success =
           agent.createReservation(reservationId, user, plan, contract);
       addYieldedReservations(yieldedReservations, plan, reservationId);
       return success;
+
     } catch (PlanningException e) {
       // Reset the plan back to its original state.
-      addYieldedReservations(yieldedReservations, plan, reservationId, true);
+      if (yieldedReservations != null) {
+        addYieldedReservations(yieldedReservations, plan, reservationId, true);
+      }
       LOG.info("Reservation=[" + reservationId + "] could not be added even "
           + "after removing lower priority reservations. Attempt to re-add the "
           + "removed reservations.");
@@ -114,29 +118,31 @@ public abstract class PriorityReservationAgent
 
   public boolean updateReservation(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
+    List<ReservationAllocation> yieldedReservations = null;
     writeLock.lock();
     try {
-      agent.updateReservation(reservationId, user, plan, contract);
-      return true;
-    } catch (PlanningException e) {
-      LOG.info("Encountered planning exception for reservation=["
-          + reservationId.toString() + "] in plan=[" + plan.getQueueName() + "]"
-          + " when creating the reservation. Attempt to make room for "
-          + "reservation by removing lower priority reservations. Exception=["
-          + e.getMessage() + "]");
-    }
+      try {
+        agent.updateReservation(reservationId, user, plan, contract);
+        return true;
+      } catch (PlanningException e) {
+        LOG.info("Encountered planning exception for reservation=["
+            + reservationId.toString() + "] in plan=[" + plan.getQueueName()
+            + "]" + " when creating the reservation. Attempt to make room for "
+            + "reservation by removing lower priority reservations. Exception=["
+            + e.getMessage() + "]");
+      }
 
-    // Normalize priority to ensure that ReservationDefinitions with invalid
-    // priority have the lowest possible priority.
-    contract.setPriority(normalizePriority(contract.getPriority()));
-    List<ReservationAllocation> yieldedReservations =
-        makeRoomForReservation(reservationId, user, plan, contract);
+      // Normalize priority to ensure that ReservationDefinitions with invalid
+      // priority have the lowest possible priority.
+      contract.setPriority(normalizePriority(contract.getPriority()));
+      yieldedReservations =
+          makeRoomForReservation(reservationId, user, plan, contract);
 
-    try {
       boolean success =
           agent.updateReservation(reservationId, user, plan, contract);
       addYieldedReservations(yieldedReservations, plan, reservationId);
       return success;
+
     } catch (PlanningException e) {
       addYieldedReservations(yieldedReservations, plan, reservationId, true);
       LOG.info("Reservation=[" + reservationId + "] could not be added even "

@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.api.records.ReservationACL;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
+import org.apache.hadoop.yarn.api.records.ReservationPriorityScope;
 
 import java.util.Map;
 
@@ -40,12 +41,16 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
       "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.AlignedPlannerWithGreedy";
 
   @InterfaceAudience.Private
+  public static final ReservationPriorityScope DEFAULT_RESERVATION_PRIORITY_SCOPE =
+      ReservationPriorityScope.QUEUE;
+
+  @InterfaceAudience.Private
   public static final boolean DEFAULT_ENABLE_RESERVATION_PRIORITY = false;
 
   @InterfaceAudience.Private
   public static final String DEFAULT_PRIORITY_RESERVATION_AGENT_NAME =
-      "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning" +
-          ".SimplePriorityReservationAgent";
+      "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning"
+          + ".SimplePriorityReservationAgent";
 
   @InterfaceAudience.Private
   public static final String DEFAULT_RESERVATION_PLANNER_NAME =
@@ -141,10 +146,22 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
   }
 
   /**
+   * Gets the {@link ReservationPriorityScope} that reservation priority applies
+   * to.
+   *
+   * @param queue name of the queue
+   * @return The {@link ReservationPriorityScope} that determines the scope that
+   * the reservation priority applies to.
+   */
+  public ReservationPriorityScope getReservationPriorityScope(String queue) {
+    return DEFAULT_RESERVATION_PRIORITY_SCOPE;
+  }
+
+  /**
    * Checks whether the reservation priority is enabled. If reservation
    * priority is enabled, then reservations with lower priority may be
    * yielded by higher priority reservations. Otherwise, priority in the
-   * {@code ReservationDefinition} will not be used.
+   * {@link ReservationDefinition} will not be used.
    *
    * @param queue name of the queue
    * @return true if reservation priority is enabled for the queue.

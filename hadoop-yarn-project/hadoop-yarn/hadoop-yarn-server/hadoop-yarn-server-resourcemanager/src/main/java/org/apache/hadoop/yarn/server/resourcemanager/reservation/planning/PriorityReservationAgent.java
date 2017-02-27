@@ -144,7 +144,9 @@ public abstract class PriorityReservationAgent
       return success;
 
     } catch (PlanningException e) {
-      addYieldedReservations(yieldedReservations, plan, reservationId, true);
+      if (yieldedReservations != null) {
+        addYieldedReservations(yieldedReservations, plan, reservationId, true);
+      }
       LOG.info("Reservation=[" + reservationId + "] could not be added even "
           + "after removing lower priority reservations. Attempt to re-add the "
           + "removed reservations.");

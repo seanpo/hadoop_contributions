@@ -39,7 +39,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.Reserv
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.QueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacitySchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.security.ReservationsACLsManager;
 import org.apache.hadoop.yarn.util.Clock;
@@ -412,9 +411,7 @@ public abstract class AbstractReservationSystem extends AbstractService
     ResourceCalculator rescCalc = getResourceCalculator();
     Resource totCap = getPlanQueueCapacity(planQueueName);
     ReservationAgent agent = getAgent(planQueuePath);
-    if (conf.getBoolean(CapacitySchedulerConfiguration
-        .ENABLE_RESERVATION_PRIORITY, CapacitySchedulerConfiguration
-        .DEFAULT_ENABLE_RESERVATION_PRIORITY)) {
+    if (getEnableReservationPriority(planQueueName)) {
       agent = getPriorityReservationAgent(planQueueName, agent);
     }
     Plan plan =
@@ -463,6 +460,12 @@ public abstract class AbstractReservationSystem extends AbstractService
       throw new YarnRuntimeException("Could not instantiate Agent: "
           + agentClassName + " for queue: " + queueName, e);
     }
+  }
+
+  protected boolean getEnableReservationPriority(String queueName) {
+    ReservationSchedulerConfiguration reservationConfig =
+        getReservationSchedulerConfiguration();
+    return reservationConfig.getEnableReservationPriority(queueName);
   }
 
   protected ReservationAgent getPriorityReservationAgent(String queueName,

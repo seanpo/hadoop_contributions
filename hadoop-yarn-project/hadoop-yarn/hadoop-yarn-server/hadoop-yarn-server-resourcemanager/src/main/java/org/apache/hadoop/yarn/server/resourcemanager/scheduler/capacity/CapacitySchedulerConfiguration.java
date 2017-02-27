@@ -285,15 +285,13 @@ public class CapacitySchedulerConfiguration extends ReservationSchedulerConfigur
   public static final String RESERVATION_SHOW_RESERVATION_AS_QUEUE =
       "show-reservations-as-queues";
 
-  @Private public static final String ENABLE_RESERVATION_PRIORITY =
-      "enable-reservation-priority";
-  @Private public static final boolean DEFAULT_ENABLE_RESERVATION_PRIORITY =
-      false;
-
   @Private public static final String RESERVATION_PRIORITY_SCOPE =
       "reservation-priority-scope";
   @Private public static final ReservationPriorityScope
       DEFAULT_RESERVATION_PRIORITY_SCOPE = ReservationPriorityScope.QUEUE;
+
+  @Private public static final String ENABLE_RESERVATION_PRIORITY =
+      "enable-reservation-priority";
 
   @Private
   public static final String PRIORITY_RESERVATION_AGENT_NAME =
@@ -1052,6 +1050,14 @@ public class CapacitySchedulerConfiguration extends ReservationSchedulerConfigur
 
   public void setReservationAgent(String queue, String reservationPolicy) {
     set(getQueuePrefix(queue) + RESERVATION_AGENT_NAME, reservationPolicy);
+  }
+
+  @Override
+  public boolean getEnableReservationPriority(String queue) {
+    boolean priorityReservationAgent =
+        getBoolean(getQueuePrefix(queue) + ENABLE_RESERVATION_PRIORITY,
+            DEFAULT_ENABLE_RESERVATION_PRIORITY);
+    return priorityReservationAgent;
   }
 
   @Override

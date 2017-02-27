@@ -40,6 +40,9 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
       "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning.AlignedPlannerWithGreedy";
 
   @InterfaceAudience.Private
+  public static final boolean DEFAULT_ENABLE_RESERVATION_PRIORITY = false;
+
+  @InterfaceAudience.Private
   public static final String DEFAULT_PRIORITY_RESERVATION_AGENT_NAME =
       "org.apache.hadoop.yarn.server.resourcemanager.reservation.planning" +
           ".SimplePriorityReservationAgent";
@@ -135,6 +138,19 @@ public abstract class ReservationSchedulerConfiguration extends Configuration {
    */
   public String getReservationAgent(String queue) {
     return DEFAULT_RESERVATION_AGENT_NAME;
+  }
+
+  /**
+   * Checks whether the reservation priority is enabled. If reservation
+   * priority is enabled, then reservations with lower priority may be
+   * yielded by higher priority reservations. Otherwise, priority in the
+   * {@code ReservationDefinition} will not be used.
+   *
+   * @param queue name of the queue
+   * @return true if reservation priority is enabled for the queue.
+   */
+  public boolean getEnableReservationPriority(String queue) {
+    return DEFAULT_ENABLE_RESERVATION_PRIORITY;
   }
 
   /**

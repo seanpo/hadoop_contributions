@@ -55,6 +55,10 @@ public class SimplePriorityReservationAgent extends PriorityReservationAgent {
   private ReservationPriorityScope scope;
   private Configuration configuration;
 
+  public SimplePriorityReservationAgent() {
+    this(new Configuration());
+  }
+
   public SimplePriorityReservationAgent(Configuration conf) {
     setConf(conf);
   }

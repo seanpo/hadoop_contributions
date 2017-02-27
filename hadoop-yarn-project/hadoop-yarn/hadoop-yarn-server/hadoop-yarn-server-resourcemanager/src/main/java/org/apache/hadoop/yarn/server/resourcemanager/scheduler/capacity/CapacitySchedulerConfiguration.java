@@ -1076,12 +1076,6 @@ public class CapacitySchedulerConfiguration extends ReservationSchedulerConfigur
     return priorityReservationAgent;
   }
 
-  public void setPriorityReservationAgent(String queue,
-        String reservationPolicy) {
-    set(getQueuePrefix(queue) + PRIORITY_RESERVATION_AGENT_NAME,
-        reservationPolicy);
-  }
-
   @Override
   public boolean getShowReservationAsQueues(String queuePath) {
     boolean showReservationAsQueues =

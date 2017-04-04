@@ -118,4 +118,17 @@ public interface PlanContext {
    */
   public boolean getMoveOnExpiry();
 
+  /**
+   * Locks the plan so that no {@link PlanEdit} methods can be executed in
+   * another thread until unlockPlan is called. This method will block until
+   * the lock is acquired.
+   */
+  public void lockPlanWriteLock();
+
+  /**
+   * Locks the plan so that {@link PlanEdit} methods can be executed from
+   * other threads.
+   */
+  public void unlockPlanWriteLock();
+
 }

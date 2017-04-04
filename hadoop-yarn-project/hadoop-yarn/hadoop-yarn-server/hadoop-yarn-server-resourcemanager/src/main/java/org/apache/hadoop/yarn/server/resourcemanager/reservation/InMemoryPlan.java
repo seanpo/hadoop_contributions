@@ -654,6 +654,16 @@ public class InMemoryPlan implements Plan {
   }
 
   @Override
+  public void lockPlanWriteLock() {
+    writeLock.lock();
+  }
+
+  @Override
+  public void unlockPlanWriteLock() {
+    writeLock.unlock();
+  }
+
+  @Override
   public String toString() {
     readLock.lock();
     try {
@@ -698,4 +708,6 @@ public class InMemoryPlan implements Plan {
       readLock.unlock();
     }
   }
+
+
 }

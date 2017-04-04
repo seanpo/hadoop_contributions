@@ -31,8 +31,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.Plan
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This {@link ReservationAgent} is an abstract agent that wraps other
@@ -47,10 +45,6 @@ public abstract class PriorityReservationAgent
     implements ReservationAgent, Configurable {
 
   private ReservationAgent agent;
-
-  private final ReentrantReadWriteLock readWriteLock =
-      new ReentrantReadWriteLock();
-  private final Lock writeLock = readWriteLock.writeLock();
 
   private static final Log LOG =
       LogFactory.getLog(PriorityReservationAgent.class.getName());
@@ -78,7 +72,7 @@ public abstract class PriorityReservationAgent
   public boolean createReservation(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
     List<ReservationAllocation> yieldedReservations = null;
-    writeLock.lock();
+    plan.lockPlanWriteLock();
     try {
       try {
         agent.createReservation(reservationId, user, plan, contract);
@@ -112,14 +106,14 @@ public abstract class PriorityReservationAgent
           + "removed reservations.");
       throw e;
     } finally {
-      writeLock.unlock();
+      plan.unlockPlanWriteLock();
     }
   }
 
   public boolean updateReservation(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
     List<ReservationAllocation> yieldedReservations = null;
-    writeLock.lock();
+    plan.lockPlanWriteLock();
     try {
       try {
         agent.updateReservation(reservationId, user, plan, contract);
@@ -152,7 +146,7 @@ public abstract class PriorityReservationAgent
           + "removed reservations.");
       throw e;
     } finally {
-      writeLock.unlock();
+      plan.unlockPlanWriteLock();
     }
   }
 
@@ -182,11 +176,11 @@ public abstract class PriorityReservationAgent
 
   public boolean deleteReservation(ReservationId reservationId, String user,
       Plan plan) throws PlanningException {
-    writeLock.lock();
+    plan.lockPlanWriteLock();
     try {
       return agent.deleteReservation(reservationId, user, plan);
     } finally {
-      writeLock.unlock();
+      plan.unlockPlanWriteLock();
     }
   }
 

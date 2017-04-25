@@ -454,8 +454,10 @@ public abstract class AbstractReservationSystem extends AbstractService
     String agentClassName = reservationConfig.getReservationAgent(queueName);
     LOG.info("Using Agent: " + agentClassName + " for queue: " + queueName);
     try {
-      return (ReservationAgent) getObject(ReservationAgent.class,
-          agentClassName);
+      ReservationAgent agent =
+          (ReservationAgent) getObject(ReservationAgent.class, agentClassName);
+      agent.init(conf);
+      return agent;
     } catch (ClassNotFoundException e) {
       throw new YarnRuntimeException("Could not instantiate Agent: "
           + agentClassName + " for queue: " + queueName, e);
@@ -480,6 +482,7 @@ public abstract class AbstractReservationSystem extends AbstractService
       PriorityReservationAgent agent = (PriorityReservationAgent) getObject(
           PriorityReservationAgent.class, agentClassName);
       agent.setAgent(workerAgent);
+      agent.init(conf);
       return agent;
     } catch (ClassNotFoundException e) {
       throw new YarnRuntimeException("Could not instantiate Priority Agent: "

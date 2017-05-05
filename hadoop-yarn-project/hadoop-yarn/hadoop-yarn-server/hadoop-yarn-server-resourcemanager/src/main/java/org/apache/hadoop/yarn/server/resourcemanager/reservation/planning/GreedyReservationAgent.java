@@ -19,6 +19,7 @@
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
@@ -49,6 +50,8 @@ public class GreedyReservationAgent implements ReservationAgent {
   private ReservationAgent planner;
   private boolean allocateLeft;
 
+  private ReservationAgentMetrics reservationAgentMetrics;
+
   public GreedyReservationAgent() {
   }
 
@@ -69,6 +72,7 @@ public class GreedyReservationAgent implements ReservationAgent {
     planner =
         new IterativePlanner(new StageExecutionIntervalUnconstrained(),
             new StageAllocatorGreedyRLE(allocateLeft), allocateLeft);
+    reservationAgentMetrics = ReservationAgentMetrics.getMetrics();
   }
 
   public boolean isAllocateLeft(){
@@ -79,6 +83,8 @@ public class GreedyReservationAgent implements ReservationAgent {
       Plan plan, ReservationDefinition contract) throws PlanningException {
 
     LOG.info("placing the following ReservationRequest: " + contract);
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
 
     try {
       boolean res =
@@ -91,33 +97,62 @@ public class GreedyReservationAgent implements ReservationAgent {
         LOG.info("OUTCOME: FAILURE, Reservation ID: "
             + reservationId.toString() + ", Contract: " + contract.toString());
       }
+      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
+          res);
       return res;
     } catch (PlanningException e) {
       LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString()
           + ", Contract: " + contract.toString());
+      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
+          false);
       throw e;
     }
-
   }
 
   @Override
   public boolean updateReservation(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
 
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+
     LOG.info("updating the following ReservationRequest: " + contract);
 
-    return planner.updateReservation(reservationId, user, plan, contract);
-
+    try {
+      boolean status =
+          planner.updateReservation(reservationId, user, plan, contract);
+      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
+          status);
+      return status;
+    } catch (PlanningException e) {
+      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString()
+          + ", Contract: " + contract.toString());
+      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
+          false);
+      throw e;
+    }
   }
 
   @Override
   public boolean deleteReservation(ReservationId reservationId, String user,
       Plan plan) throws PlanningException {
 
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+
     LOG.info("removing the following ReservationId: " + reservationId);
 
-    return planner.deleteReservation(reservationId, user, plan);
-
+    try {
+      boolean status = planner.deleteReservation(reservationId, user, plan);
+      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
+          status);
+      return status;
+    } catch (PlanningException e) {
+      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString());
+      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
+          false);
+      throw e;
+    }
   }
 
 }

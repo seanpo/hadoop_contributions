@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.reservation;
 
+import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -45,6 +46,8 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractSchedulerPlanFollower.class);
 
+  private PlanFollowerMetrics planFollowerMetrics;
+
   protected Collection<Plan> plans = new ArrayList<Plan>();
   protected YarnScheduler scheduler;
   protected Clock clock;
@@ -54,6 +57,7 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     this.clock = clock;
     this.scheduler = sched;
     this.plans.addAll(plans);
+    this.planFollowerMetrics = PlanFollowerMetrics.getMetrics();
   }
 
   @Override
@@ -75,6 +79,8 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Running plan follower edit policy for plan: " + planQueueName);
     }
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
     // align with plan step
     long step = plan.getStep();
     long now = clock.getTime();
@@ -214,6 +220,7 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     } catch (PlanningException e) {
       LOG.error("Exception in archiving completed reservations: ", e);
     }
+    this.planFollowerMetrics.setPlanFollowerSynchronizeMetrics(stopWatch.now());
     LOG.info("Finished iteration of plan follower edit policy for plan: "
         + planQueueName);
     // Extension: update plan with app states,

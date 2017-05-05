@@ -29,6 +29,7 @@ import org.apache.hadoop.metrics2.annotation.Metric;
 import org.apache.hadoop.metrics2.annotation.Metrics;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.metrics2.lib.MetricsRegistry;
+import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 
 @InterfaceAudience.Private
@@ -39,11 +40,16 @@ public class PlanFollowerMetrics {
   private static PlanFollowerMetrics instance = null;
   private static MetricsRegistry registry;
 
-  @Metric("PlanFollower Latency")
-  MutableQuantiles planFollowerLatency;
+  MutableQuantiles planFollowerSynchronizeLatency;
+
+  @Metric("Plan Follower Synchronize Count")
+  MutableCounterInt planFollowerSynchronizeCount;
 
   private static final MetricsInfo RECORD_INFO =
       info("PlanFollowerMetrics", "Metrics for the Yarn PlanFollower");
+
+  private PlanFollowerMetrics() {
+  }
 
   public static PlanFollowerMetrics getMetrics() {
     if (!isInitialized.get()) {
@@ -70,7 +76,13 @@ public class PlanFollowerMetrics {
   }
 
   private void initialize() {
-    planFollowerLatency = registry.newQuantiles("PlanFollowerLatency",
-        "Latency for plan follower execution", "ops", "latency", 5);
+    planFollowerSynchronizeLatency =
+        registry.newQuantiles("PlanFollowerSynchronizeLatency",
+            "Latency for plan follower execution", "ops", "latency", 5);
+  }
+
+  public void setPlanFollowerSynchronizeMetrics(long latency) {
+    planFollowerSynchronizeLatency.add(latency);
+    planFollowerSynchronizeCount.incr();
   }
 }

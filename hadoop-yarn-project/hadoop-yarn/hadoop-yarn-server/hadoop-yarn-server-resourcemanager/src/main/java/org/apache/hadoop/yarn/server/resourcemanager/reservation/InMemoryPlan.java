@@ -31,6 +31,7 @@ import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.RLESparseResourceAllocation.RLEOperator;
@@ -90,6 +91,8 @@ public class InMemoryPlan implements Plan {
 
   private Resource totalCapacity;
 
+  private PlanMetrics planMetrics;
+
   public InMemoryPlan(QueueMetrics queueMetrics, SharingPolicy policy,
       ReservationAgent agent, Resource totalCapacity, long step,
       ResourceCalculator resCalc, Resource minAlloc, Resource maxAlloc,
@@ -119,6 +122,7 @@ public class InMemoryPlan implements Plan {
     this.getMoveOnExpiry = getMoveOnExpiry;
     this.clock = clock;
     this.rmStateStore = rmContext.getStateStore();
+    this.planMetrics = PlanMetrics.getMetrics();
   }
 
   @Override
@@ -214,6 +218,8 @@ public class InMemoryPlan implements Plan {
   @Override
   public boolean addReservation(ReservationAllocation reservation,
       boolean isRecovering) throws PlanningException {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
     // Verify the allocation is memory based otherwise it is not supported
     InMemoryReservationAllocation inMemReservation =
         (InMemoryReservationAllocation) reservation;
@@ -223,8 +229,10 @@ public class InMemoryPlan implements Plan {
               + inMemReservation.getReservationId()
               + " is not mapped to any user";
       LOG.error(errMsg);
+      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
       throw new IllegalArgumentException(errMsg);
     }
+
     writeLock.lock();
     try {
       if (reservationTable.containsKey(inMemReservation.getReservationId())) {
@@ -257,6 +265,7 @@ public class InMemoryPlan implements Plan {
       if (!reservations.add(inMemReservation)) {
         LOG.error("Unable to add reservation: {} to plan.",
             inMemReservation.getReservationId());
+        planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
         return false;
       }
       currentReservations.put(searchInterval, reservations);
@@ -265,7 +274,11 @@ public class InMemoryPlan implements Plan {
       incrementAllocation(inMemReservation);
       LOG.info("Successfully added reservation: {} to plan.",
           inMemReservation.getReservationId());
+      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), true);
       return true;
+    } catch (Exception e) {
+      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+      throw e;
     } finally {
       writeLock.unlock();
     }
@@ -274,6 +287,8 @@ public class InMemoryPlan implements Plan {
   @Override
   public boolean updateReservation(ReservationAllocation reservation)
       throws PlanningException {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
     writeLock.lock();
     boolean result = false;
     try {
@@ -311,7 +326,11 @@ public class InMemoryPlan implements Plan {
             reservation.getReservationId());
         return result;
       }
+    } catch (Exception e) {
+      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), false);
+      throw e;
     } finally {
+      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
       writeLock.unlock();
     }
   }
@@ -352,6 +371,8 @@ public class InMemoryPlan implements Plan {
 
   @Override
   public boolean deleteReservation(ReservationId reservationID) {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
     writeLock.lock();
     try {
       ReservationAllocation reservation = getReservationById(reservationID);
@@ -362,7 +383,12 @@ public class InMemoryPlan implements Plan {
         LOG.error(errMsg);
         throw new IllegalArgumentException(errMsg);
       }
-      return removeReservation(reservation);
+      boolean result = removeReservation(reservation);
+      planMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), result);
+      return result;
+    } catch (Exception e){
+      planMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), false);
+      throw e;
     } finally {
       writeLock.unlock();
     }

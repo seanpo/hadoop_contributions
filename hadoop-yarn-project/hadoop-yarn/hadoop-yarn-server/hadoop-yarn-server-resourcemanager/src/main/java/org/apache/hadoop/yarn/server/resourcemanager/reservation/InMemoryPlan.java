@@ -330,8 +330,8 @@ public class InMemoryPlan implements Plan {
       planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), false);
       throw e;
     } finally {
-      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
       writeLock.unlock();
+      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
     }
   }
 

@@ -89,7 +89,6 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     }
     Queue planQueue = getPlanQueue(planQueueName);
     if (planQueue == null) return;
-
     // first we publish to the plan the current availability of resources
     Resource clusterResources = scheduler.getClusterResource();
     Resource planResources = getPlanResources(plan, planQueue,
@@ -223,8 +222,7 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     this.planFollowerMetrics.setPlanFollowerSynchronizeMetrics(stopWatch.now());
     LOG.info("Finished iteration of plan follower edit policy for plan: "
         + planQueueName);
-    // Extension: update plan with app states,
-    // useful to support smart replanning
+    // Extension: update plan with app states, to support smart replanning.
   }
 
   protected String getReservationIdFromQueueName(String resQueueName) {

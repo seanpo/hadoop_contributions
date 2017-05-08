@@ -32,9 +32,15 @@ import org.apache.hadoop.metrics2.lib.MetricsRegistry;
 import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 
+/**
+ * {@link ReservationAgentMetrics} is used to collect metrics for the
+ * {@link ReservationAgent}. Specifically, the latency, total count, and
+ * failure count of the createReservation, updateReservation, and
+ * deleteReservation methods are collected.
+ */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")
-public class ReservationAgentMetrics {
+public final class ReservationAgentMetrics {
 
   private static AtomicBoolean isInitialized = new AtomicBoolean(false);
   private static ReservationAgentMetrics instance = null;
@@ -78,7 +84,8 @@ public class ReservationAgentMetrics {
           registerMetrics();
           instance.initialize();
           isInitialized.set(true);
-        } }
+        }
+      }
     }
     return instance;
   }

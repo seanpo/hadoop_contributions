@@ -19,7 +19,6 @@
 package org.apache.hadoop.yarn.server.resourcemanager.reservation.planning;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.yarn.api.records.ReservationDefinition;
 import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
@@ -89,14 +88,12 @@ public class GreedyReservationAgent extends AbstractReservationAgent {
   @Override
   public boolean updateReservationImpl(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
-
     return planner.updateReservation(reservationId, user, plan, contract);
   }
 
   @Override
   public boolean deleteReservationImpl(ReservationId reservationId, String user,
       Plan plan) throws PlanningException {
-
     return planner.deleteReservation(reservationId, user, plan);
   }
 

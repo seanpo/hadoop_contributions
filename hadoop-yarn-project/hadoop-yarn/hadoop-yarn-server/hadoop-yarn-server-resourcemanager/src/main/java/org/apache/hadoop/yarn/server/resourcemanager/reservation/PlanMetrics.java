@@ -32,9 +32,15 @@ import org.apache.hadoop.metrics2.lib.MetricsRegistry;
 import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 
+/**
+ * {@link PlanMetrics} is used to collect metrics for the
+ * {@link Plan}. Specifically, the latency, total count, and failure count of
+ * the addReservation, updateReservation, and deleteReservation methods are
+ * collected.
+ */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")
-public class PlanMetrics {
+public final class PlanMetrics {
 
   private static AtomicBoolean isInitialized = new AtomicBoolean(false);
   private static PlanMetrics instance = null;

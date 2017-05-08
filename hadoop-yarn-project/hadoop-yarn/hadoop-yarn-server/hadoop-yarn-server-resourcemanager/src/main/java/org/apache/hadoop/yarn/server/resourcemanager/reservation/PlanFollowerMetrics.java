@@ -32,18 +32,23 @@ import org.apache.hadoop.metrics2.lib.MetricsRegistry;
 import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 
+/**
+ * {@link PlanFollowerMetrics} is used to collect and contain metrics for the
+ * {@link PlanFollower}. Specifically, the metrics for synchronize method are
+ * collected.
+ */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")
-public class PlanFollowerMetrics {
+public final class PlanFollowerMetrics {
 
   private static AtomicBoolean isInitialized = new AtomicBoolean(false);
   private static PlanFollowerMetrics instance = null;
   private static MetricsRegistry registry;
 
-  MutableQuantiles planFollowerSynchronizeLatency;
+  private MutableQuantiles planFollowerSynchronizeLatency;
 
   @Metric("Plan Follower Synchronize Count")
-  MutableCounterInt planFollowerSynchronizeCount;
+  private MutableCounterInt planFollowerSynchronizeCount;
 
   private static final MetricsInfo RECORD_INFO =
       info("PlanFollowerMetrics", "Metrics for the Yarn PlanFollower");

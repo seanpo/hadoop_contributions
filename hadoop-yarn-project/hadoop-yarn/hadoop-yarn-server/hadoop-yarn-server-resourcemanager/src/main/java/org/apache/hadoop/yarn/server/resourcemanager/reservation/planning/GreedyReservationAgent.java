@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * size).
  */
 
-public class GreedyReservationAgent implements ReservationAgent {
+public class GreedyReservationAgent extends AbstractReservationAgent {
 
   // Log
   private static final Logger LOG = LoggerFactory
@@ -49,8 +49,6 @@ public class GreedyReservationAgent implements ReservationAgent {
   // Greedy planner
   private ReservationAgent planner;
   private boolean allocateLeft;
-
-  private ReservationAgentMetrics reservationAgentMetrics;
 
   public GreedyReservationAgent() {
   }
@@ -72,87 +70,34 @@ public class GreedyReservationAgent implements ReservationAgent {
     planner =
         new IterativePlanner(new StageExecutionIntervalUnconstrained(),
             new StageAllocatorGreedyRLE(allocateLeft), allocateLeft);
-    reservationAgentMetrics = ReservationAgentMetrics.getMetrics();
   }
 
   public boolean isAllocateLeft(){
     return allocateLeft;
   }
-  @Override
-  public boolean createReservation(ReservationId reservationId, String user,
-      Plan plan, ReservationDefinition contract) throws PlanningException {
 
-    LOG.info("placing the following ReservationRequest: " + contract);
-    StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
-
-    try {
-      boolean res =
-          planner.createReservation(reservationId, user, plan, contract);
-
-      if (res) {
-        LOG.info("OUTCOME: SUCCESS, Reservation ID: "
-            + reservationId.toString() + ", Contract: " + contract.toString());
-      } else {
-        LOG.info("OUTCOME: FAILURE, Reservation ID: "
-            + reservationId.toString() + ", Contract: " + contract.toString());
-      }
-      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
-          res);
-      return res;
-    } catch (PlanningException e) {
-      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString()
-          + ", Contract: " + contract.toString());
-      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
-          false);
-      throw e;
-    }
+  public Logger getLogger() {
+    return LOG;
   }
 
   @Override
-  public boolean updateReservation(ReservationId reservationId, String user,
+  public boolean createReservationImpl(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
-
-    StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
-
-    LOG.info("updating the following ReservationRequest: " + contract);
-
-    try {
-      boolean status =
-          planner.updateReservation(reservationId, user, plan, contract);
-      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
-          status);
-      return status;
-    } catch (PlanningException e) {
-      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString()
-          + ", Contract: " + contract.toString());
-      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
-          false);
-      throw e;
-    }
+    return planner.createReservation(reservationId, user, plan, contract);
   }
 
   @Override
-  public boolean deleteReservation(ReservationId reservationId, String user,
+  public boolean updateReservationImpl(ReservationId reservationId, String user,
+      Plan plan, ReservationDefinition contract) throws PlanningException {
+
+    return planner.updateReservation(reservationId, user, plan, contract);
+  }
+
+  @Override
+  public boolean deleteReservationImpl(ReservationId reservationId, String user,
       Plan plan) throws PlanningException {
 
-    StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
-
-    LOG.info("removing the following ReservationId: " + reservationId);
-
-    try {
-      boolean status = planner.deleteReservation(reservationId, user, plan);
-      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
-          status);
-      return status;
-    } catch (PlanningException e) {
-      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString());
-      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
-          false);
-      throw e;
-    }
+    return planner.deleteReservation(reservationId, user, plan);
   }
 
 }

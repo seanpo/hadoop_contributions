@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * A planning algorithm that first runs LowCostAligned, and if it fails runs
  * Greedy.
  */
-public class AlignedPlannerWithGreedy implements ReservationAgent {
+public class AlignedPlannerWithGreedy extends AbstractReservationAgent {
 
   // Default smoothness factor
   public static final int DEFAULT_SMOOTHNESS_FACTOR = 10;
@@ -84,49 +84,25 @@ public class AlignedPlannerWithGreedy implements ReservationAgent {
     planner = new TryManyReservationAgents(listAlg);
   }
 
-  @Override
-  public boolean createReservation(ReservationId reservationId, String user,
-      Plan plan, ReservationDefinition contract) throws PlanningException {
-
-    LOG.info("placing the following ReservationRequest: " + contract);
-
-    try {
-      boolean res =
-          planner.createReservation(reservationId, user, plan, contract);
-
-      if (res) {
-        LOG.info("OUTCOME: SUCCESS, Reservation ID: "
-            + reservationId.toString() + ", Contract: " + contract.toString());
-      } else {
-        LOG.info("OUTCOME: FAILURE, Reservation ID: "
-            + reservationId.toString() + ", Contract: " + contract.toString());
-      }
-      return res;
-    } catch (PlanningException e) {
-      LOG.info("OUTCOME: FAILURE, Reservation ID: " + reservationId.toString()
-          + ", Contract: " + contract.toString());
-      throw e;
-    }
-
+  public Logger getLogger() {
+    return LOG;
   }
 
   @Override
-  public boolean updateReservation(ReservationId reservationId, String user,
+  public boolean createReservationImpl(ReservationId reservationId, String user,
       Plan plan, ReservationDefinition contract) throws PlanningException {
+    return planner.createReservation(reservationId, user, plan, contract);
+  }
 
-    LOG.info("updating the following ReservationRequest: " + contract);
-
+  @Override
+  public boolean updateReservationImpl(ReservationId reservationId, String user,
+      Plan plan, ReservationDefinition contract) throws PlanningException {
     return planner.updateReservation(reservationId, user, plan, contract);
-
   }
 
   @Override
-  public boolean deleteReservation(ReservationId reservationId, String user,
+  public boolean deleteReservationImpl(ReservationId reservationId, String user,
       Plan plan) throws PlanningException {
-
-    LOG.info("removing the following ReservationId: " + reservationId);
-
     return planner.deleteReservation(reservationId, user, plan);
-
   }
 }

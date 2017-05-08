@@ -24,7 +24,6 @@ import org.apache.hadoop.yarn.api.records.ReservationId;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This agent wraps the implementation of {@link ReservationAgent} to provide

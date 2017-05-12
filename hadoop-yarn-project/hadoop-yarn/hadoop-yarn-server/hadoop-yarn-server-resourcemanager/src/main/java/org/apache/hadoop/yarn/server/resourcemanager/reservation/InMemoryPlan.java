@@ -326,9 +326,6 @@ public class InMemoryPlan implements Plan {
             reservation.getReservationId());
         return result;
       }
-    } catch (Exception e) {
-      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), false);
-      throw e;
     } finally {
       writeLock.unlock();
       planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);

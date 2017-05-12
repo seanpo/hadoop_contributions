@@ -33,9 +33,8 @@ import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 
 /**
- * {@link PlanFollowerMetrics} is used to collect and contain metrics for the
- * {@link PlanFollower}. Specifically, the metrics for synchronize method are
- * collected.
+ * {@link PlanFollowerMetrics} is used to collect metrics for the
+ * {@link PlanFollower#synchronizePlan} method.
  */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")

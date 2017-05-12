@@ -1023,6 +1023,7 @@ public class TestRMWebServicesReservation extends JerseyTestBase {
     String reservationJsonRequest =
         String.format(reservationJson, reservationId.toString(), arrival,
             arrival + MINIMUM_RESOURCE_DURATION, reservationName,
+            (int) Math.floor(0.9 * MINIMUM_RESOURCE_DURATION),
             (int) Math.floor(0.9 * MINIMUM_RESOURCE_DURATION));
 
     return submitAndVerifyReservation(path, media, reservationJsonRequest);

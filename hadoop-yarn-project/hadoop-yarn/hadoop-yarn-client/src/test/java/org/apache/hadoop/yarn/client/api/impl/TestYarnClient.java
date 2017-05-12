@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.yarn.client.api.impl;
 
-<<<<<<< HEAD
-=======
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
->>>>>>> Fix some tests
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -1380,7 +1375,7 @@ public class TestYarnClient {
     client.submitApplication(context);
     ApplicationReport report =
         client.getApplicationReport(context.getApplicationId());
-    assertEquals(reservationId, report.getReservationId());
+    Assert.assertEquals(reservationId, report.getReservationId());
 
     client.stop();
   }

@@ -47,6 +47,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryPlan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInterval;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemTestUtil;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
@@ -118,10 +119,13 @@ public class TestGreedyReservationAgent {
     agent.init(conf);
 
     QueueMetrics queueMetrics = mock(QueueMetrics.class);
+    ReservationQueueMetrics reservationQueueMetrics =
+        mock(ReservationQueueMetrics.class);
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
-    plan = new InMemoryPlan(queueMetrics, policy, agent, clusterCapacity, step,
-        res, minAlloc, maxAlloc, "dedicated", null, true, context);
+    plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated",
+        null, true, context);
   }
 
   @SuppressWarnings("javadoc")
@@ -730,9 +734,10 @@ public class TestGreedyReservationAgent {
     policy.init(reservationQ, conf);
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
-    plan = new InMemoryPlan(scheduler.getRootQueueMetrics(), policy, agent,
-      clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated", null,
-        true, context);
+    plan = new InMemoryPlan(scheduler.getRootQueueMetrics(),
+        scheduler.getRootQueueReservationMetrics(), policy, agent,
+        clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated", null, true,
+        context);
 
     int acc = 0;
     List<ReservationDefinition> list = new ArrayList<ReservationDefinition>();

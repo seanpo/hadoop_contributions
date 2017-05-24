@@ -37,6 +37,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReserva
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.NoOverCommitPolicy;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInterval;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemTestUtil;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemUtil;
@@ -66,6 +67,8 @@ public class TestSimpleCapacityReplanner {
     policy.init("root.dedicated", null);
 
     QueueMetrics queueMetrics = mock(QueueMetrics.class);
+    ReservationQueueMetrics reservationQueueMetrics =
+        mock(ReservationQueueMetrics.class);
 
     when(clock.getTime()).thenReturn(0L);
     SimpleCapacityReplanner enf = new SimpleCapacityReplanner(clock);
@@ -79,8 +82,9 @@ public class TestSimpleCapacityReplanner {
 
     // Initialize the plan with more resources
     InMemoryPlan plan =
-        new InMemoryPlan(queueMetrics, policy, agent, clusterCapacity, step,
-            res, minAlloc, maxAlloc, "dedicated", enf, true, context, clock);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated", enf,
+            true, context, clock);
 
     // add reservation filling the plan (separating them 1ms, so we are sure
     // s2 follows s1 on acceptance

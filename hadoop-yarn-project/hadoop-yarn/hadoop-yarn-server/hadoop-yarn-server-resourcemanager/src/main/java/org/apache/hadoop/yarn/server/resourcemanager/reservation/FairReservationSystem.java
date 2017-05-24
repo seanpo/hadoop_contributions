@@ -68,6 +68,11 @@ public class FairReservationSystem extends AbstractReservationSystem {
   }
 
   @Override
+  protected ReservationQueueMetrics getRootQueueReservationMetrics() {
+    return fairScheduler.getRootQueueReservationMetrics();
+  }
+
+  @Override
   protected Resource getMinAllocation() {
     return fairScheduler.getMinimumResourceCapability();
   }

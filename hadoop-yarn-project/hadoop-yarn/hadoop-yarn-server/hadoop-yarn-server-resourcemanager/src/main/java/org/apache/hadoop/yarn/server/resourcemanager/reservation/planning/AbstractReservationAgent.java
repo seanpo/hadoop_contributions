@@ -31,12 +31,6 @@ import org.slf4j.Logger;
  */
 abstract class AbstractReservationAgent implements ReservationAgent {
 
-  private ReservationAgentMetrics reservationAgentMetrics;
-
-  protected AbstractReservationAgent() {
-    reservationAgentMetrics = ReservationAgentMetrics.getMetrics();
-  }
-
   protected abstract Logger getLogger();
 
   protected abstract boolean createReservationImpl(ReservationId reservationId,
@@ -63,15 +57,14 @@ abstract class AbstractReservationAgent implements ReservationAgent {
             + reservationId.toString() + ", Contract: " + contract.toString());
       }
 
-      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
-          res);
       return res;
     } catch (PlanningException e) {
       getLogger().info("OUTCOME: FAILURE, Reservation ID: "
           + reservationId.toString() + ", Contract: " + contract.toString());
-      reservationAgentMetrics.setAgentCreateReservationMetrics(stopWatch.now(),
-          false);
       throw e;
+    } finally {
+      plan.getReservationQueueMetrics()
+          .setAgentCreateReservationMetrics(stopWatch.now());
     }
   }
 
@@ -91,15 +84,14 @@ abstract class AbstractReservationAgent implements ReservationAgent {
     try {
       boolean status =
           updateReservationImpl(reservationId, user, plan, contract);
-      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
-          status);
       return status;
     } catch (PlanningException e) {
       getLogger().info("OUTCOME: FAILURE, Reservation ID: "
           + reservationId.toString() + ", Contract: " + contract.toString());
-      reservationAgentMetrics.setAgentUpdateReservationMetrics(stopWatch.now(),
-          false);
       throw e;
+    } finally {
+      plan.getReservationQueueMetrics()
+          .setAgentUpdateReservationMetrics(stopWatch.now());
     }
   }
 
@@ -116,16 +108,14 @@ abstract class AbstractReservationAgent implements ReservationAgent {
     stopWatch.start();
 
     try {
-      boolean status = deleteReservationImpl(reservationId, user, plan);
-      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
-          status);
-      return status;
+      return deleteReservationImpl(reservationId, user, plan);
     } catch (PlanningException e) {
       getLogger().info(
           "OUTCOME: FAILURE, Reservation ID: " + reservationId.toString());
-      reservationAgentMetrics.setAgentDeleteReservationMetrics(stopWatch.now(),
-          false);
       throw e;
+    } finally {
+      plan.getReservationQueueMetrics()
+          .setAgentDeleteReservationMetrics(stopWatch.now());
     }
   }
 

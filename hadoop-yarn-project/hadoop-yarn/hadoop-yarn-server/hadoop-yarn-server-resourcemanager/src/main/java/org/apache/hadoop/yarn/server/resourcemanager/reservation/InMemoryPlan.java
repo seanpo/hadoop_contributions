@@ -91,19 +91,21 @@ public class InMemoryPlan implements Plan {
 
   private Resource totalCapacity;
 
-  private PlanMetrics planMetrics;
+  private ReservationQueueMetrics reservationQueueMetrics;
 
-  public InMemoryPlan(QueueMetrics queueMetrics, SharingPolicy policy,
+  public InMemoryPlan(QueueMetrics queueMetrics,
+      ReservationQueueMetrics reservationQueueMetrics, SharingPolicy policy,
       ReservationAgent agent, Resource totalCapacity, long step,
       ResourceCalculator resCalc, Resource minAlloc, Resource maxAlloc,
       String queueName, Planner replanner, boolean getMoveOnExpiry,
       RMContext rmContext) {
-    this(queueMetrics, policy, agent, totalCapacity, step, resCalc, minAlloc,
-        maxAlloc, queueName, replanner, getMoveOnExpiry, rmContext,
-        new UTCClock());
+    this(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity,
+        step, resCalc, minAlloc, maxAlloc, queueName, replanner,
+        getMoveOnExpiry, rmContext, new UTCClock());
   }
 
-  public InMemoryPlan(QueueMetrics queueMetrics, SharingPolicy policy,
+  public InMemoryPlan(QueueMetrics queueMetrics,
+      ReservationQueueMetrics reservationQueueMetrics, SharingPolicy policy,
       ReservationAgent agent, Resource totalCapacity, long step,
       ResourceCalculator resCalc, Resource minAlloc, Resource maxAlloc,
       String queueName, Planner replanner, boolean getMoveOnExpiry,
@@ -122,7 +124,7 @@ public class InMemoryPlan implements Plan {
     this.getMoveOnExpiry = getMoveOnExpiry;
     this.clock = clock;
     this.rmStateStore = rmContext.getStateStore();
-    this.planMetrics = PlanMetrics.getMetrics();
+    this.reservationQueueMetrics = reservationQueueMetrics;
   }
 
   @Override
@@ -130,6 +132,11 @@ public class InMemoryPlan implements Plan {
     return queueMetrics;
   }
 
+
+  @Override
+  public ReservationQueueMetrics getReservationQueueMetrics() {
+    return reservationQueueMetrics;
+  }
 
   private void incrementAllocation(ReservationAllocation reservation) {
     assert (readWriteLock.isWriteLockedByCurrentThread());
@@ -229,7 +236,7 @@ public class InMemoryPlan implements Plan {
               + inMemReservation.getReservationId()
               + " is not mapped to any user";
       LOG.error(errMsg);
-      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
       throw new IllegalArgumentException(errMsg);
     }
 
@@ -265,7 +272,7 @@ public class InMemoryPlan implements Plan {
       if (!reservations.add(inMemReservation)) {
         LOG.error("Unable to add reservation: {} to plan.",
             inMemReservation.getReservationId());
-        planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+        reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
         return false;
       }
       currentReservations.put(searchInterval, reservations);
@@ -274,10 +281,10 @@ public class InMemoryPlan implements Plan {
       incrementAllocation(inMemReservation);
       LOG.info("Successfully added reservation: {} to plan.",
           inMemReservation.getReservationId());
-      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), true);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), true);
       return true;
     } catch (Exception e) {
-      planMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
       throw e;
     } finally {
       writeLock.unlock();
@@ -328,7 +335,7 @@ public class InMemoryPlan implements Plan {
       }
     } finally {
       writeLock.unlock();
-      planMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
+      reservationQueueMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
     }
   }
 
@@ -381,10 +388,10 @@ public class InMemoryPlan implements Plan {
         throw new IllegalArgumentException(errMsg);
       }
       boolean result = removeReservation(reservation);
-      planMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), result);
+      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), result);
       return result;
     } catch (Exception e){
-      planMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), false);
       throw e;
     } finally {
       writeLock.unlock();

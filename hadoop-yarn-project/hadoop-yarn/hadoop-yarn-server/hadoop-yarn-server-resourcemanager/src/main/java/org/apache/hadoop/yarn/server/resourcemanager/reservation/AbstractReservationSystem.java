@@ -409,12 +409,12 @@ public abstract class AbstractReservationSystem extends AbstractService
     Resource maxAllocation = getMaxAllocation();
     ResourceCalculator rescCalc = getResourceCalculator();
     Resource totCap = getPlanQueueCapacity(planQueueName);
-    Plan plan =
-        new InMemoryPlan(getRootQueueMetrics(), adPolicy,
-            getAgent(planQueuePath), totCap, planStepSize, rescCalc,
-            minAllocation, maxAllocation, planQueueName,
-            getReplanner(planQueuePath), getReservationSchedulerConfiguration()
-            .getMoveOnExpiry(planQueuePath), rmContext);
+    Plan plan = new InMemoryPlan(getRootQueueMetrics(),
+        getRootQueueReservationMetrics(), adPolicy, getAgent(planQueuePath),
+        totCap, planStepSize, rescCalc, minAllocation, maxAllocation,
+        planQueueName, getReplanner(planQueuePath),
+        getReservationSchedulerConfiguration().getMoveOnExpiry(planQueuePath),
+        rmContext);
     LOG.info("Initialized plan {} based on reservable queue {}",
         plan.toString(), planQueueName);
     return plan;
@@ -507,4 +507,6 @@ public abstract class AbstractReservationSystem extends AbstractService
   protected abstract ResourceCalculator getResourceCalculator();
 
   protected abstract QueueMetrics getRootQueueMetrics();
+
+  protected abstract ReservationQueueMetrics getRootQueueReservationMetrics();
 }

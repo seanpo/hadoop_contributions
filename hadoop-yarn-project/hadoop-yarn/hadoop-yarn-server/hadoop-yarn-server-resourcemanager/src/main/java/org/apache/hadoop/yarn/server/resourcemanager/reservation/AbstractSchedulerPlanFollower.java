@@ -46,8 +46,6 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
   private static final Logger LOG = LoggerFactory
       .getLogger(AbstractSchedulerPlanFollower.class);
 
-  private PlanFollowerMetrics planFollowerMetrics;
-
   protected Collection<Plan> plans = new ArrayList<Plan>();
   protected YarnScheduler scheduler;
   protected Clock clock;
@@ -57,7 +55,6 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     this.clock = clock;
     this.scheduler = sched;
     this.plans.addAll(plans);
-    this.planFollowerMetrics = PlanFollowerMetrics.getMetrics();
   }
 
   @Override
@@ -219,7 +216,8 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     } catch (PlanningException e) {
       LOG.error("Exception in archiving completed reservations: ", e);
     }
-    this.planFollowerMetrics.setPlanFollowerSynchronizeMetrics(stopWatch.now());
+    planQueue.getReservationMetrics()
+        .setPlanFollowerSynchronizeMetrics(stopWatch.now());
     LOG.info("Finished iteration of plan follower edit policy for plan: "
         + planQueueName);
     // Extension: update plan with app states, to support smart replanning.

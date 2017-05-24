@@ -48,6 +48,7 @@ import org.apache.hadoop.yarn.server.api.protocolrecords.NMContainerStatus;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
@@ -119,7 +120,8 @@ public class FifoScheduler extends
 
   private static final String DEFAULT_QUEUE_NAME = "default";
   private QueueMetrics metrics;
-  
+  private ReservationQueueMetrics reservationMetrics;
+
   private final ResourceCalculator resourceCalculator = new DefaultResourceCalculator();
 
   private final Queue DEFAULT_QUEUE = new Queue() {
@@ -131,6 +133,11 @@ public class FifoScheduler extends
     @Override
     public QueueMetrics getMetrics() {
       return metrics;
+    }
+
+    @Override
+    public ReservationQueueMetrics getReservationMetrics() {
+      return reservationMetrics;
     }
 
     @Override
@@ -256,6 +263,8 @@ public class FifoScheduler extends
         YarnConfiguration.DEFAULT_RM_SCHEDULER_USE_PORT_FOR_NODE_NAME);
     this.metrics = QueueMetrics.forQueue(DEFAULT_QUEUE_NAME, null, false,
         conf);
+    this.reservationMetrics =
+        ReservationQueueMetrics.forReservationQueue(DEFAULT_QUEUE_NAME, null);
     this.activeUsersManager = new ActiveUsersManager(metrics);
   }
 
@@ -909,6 +918,11 @@ public class FifoScheduler extends
   @Override
   public QueueMetrics getRootQueueMetrics() {
     return DEFAULT_QUEUE.getMetrics();
+  }
+
+  @Override
+  public ReservationQueueMetrics getRootQueueReservationMetrics() {
+    return DEFAULT_QUEUE.getReservationMetrics();
   }
 
   @Override

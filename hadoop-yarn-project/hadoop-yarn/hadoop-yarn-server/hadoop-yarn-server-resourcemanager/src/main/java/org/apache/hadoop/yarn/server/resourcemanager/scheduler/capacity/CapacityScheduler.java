@@ -71,6 +71,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.placement.UserGroupMappingP
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.records.ApplicationStateData;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationConstants;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEventType;
@@ -239,6 +240,11 @@ public class CapacityScheduler extends
   @Override
   public QueueMetrics getRootQueueMetrics() {
     return getRootQueue().getMetrics();
+  }
+
+  @Override
+  public ReservationQueueMetrics getRootQueueReservationMetrics() {
+    return getRootQueue().getReservationMetrics();
   }
 
   public CSQueue getRootQueue() {

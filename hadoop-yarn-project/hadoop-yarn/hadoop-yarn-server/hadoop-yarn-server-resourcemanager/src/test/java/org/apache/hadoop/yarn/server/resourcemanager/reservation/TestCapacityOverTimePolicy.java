@@ -75,6 +75,8 @@ public class TestCapacityOverTimePolicy {
 
     mAgent = mock(ReservationAgent.class);
     QueueMetrics rootQueueMetrics = mock(QueueMetrics.class);
+    ReservationQueueMetrics rootQueueReservationMetrics =
+        mock(ReservationQueueMetrics.class);
     String reservationQ =
         ReservationSystemTestUtil.getFullReservationQueueName();
     Resource clusterResource =
@@ -87,9 +89,9 @@ public class TestCapacityOverTimePolicy {
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
     plan =
-        new InMemoryPlan(rootQueueMetrics, policy, mAgent,
-            clusterResource, step, res, minAlloc, maxAlloc,
-            "dedicated", null, true, context);
+        new InMemoryPlan(rootQueueMetrics, rootQueueReservationMetrics, policy,
+            mAgent, clusterResource, step, res, minAlloc, maxAlloc, "dedicated",
+            null, true, context);
   }
 
   public int[] generateData(int length, int val) {

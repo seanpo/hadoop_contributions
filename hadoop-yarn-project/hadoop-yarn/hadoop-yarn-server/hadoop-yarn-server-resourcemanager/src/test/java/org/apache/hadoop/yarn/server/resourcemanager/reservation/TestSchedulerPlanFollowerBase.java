@@ -59,7 +59,8 @@ public abstract class TestSchedulerPlanFollowerBase {
       InterruptedException, AccessControlException {
     // Initialize plan based on move flag
     plan =
-        new InMemoryPlan(scheduler.getRootQueueMetrics(), policy, mAgent,
+        new InMemoryPlan(scheduler.getRootQueueMetrics(),
+            scheduler.getRootQueueReservationMetrics(), policy, mAgent,
             scheduler.getClusterResource(), 1L, res,
             scheduler.getMinimumResourceCapability(), maxAlloc, "dedicated",
             null, isMove, context);

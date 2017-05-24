@@ -44,6 +44,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.InMemoryReserva
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.RLESparseResourceAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInterval;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSchedulerConfiguration;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemTestUtil;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
@@ -1056,6 +1057,8 @@ public class TestAlignedPlanner {
     policy.init(reservationQ, conf);
 
     QueueMetrics queueMetrics = mock(QueueMetrics.class);
+    ReservationQueueMetrics reservationQueueMetrics =
+        mock(ReservationQueueMetrics.class);
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
     conf.setInt(AlignedPlannerWithGreedy.SMOOTHNESS_FACTOR,
@@ -1071,8 +1074,9 @@ public class TestAlignedPlanner {
     agentLeft.init(conf);
 
     // Create Plan
-    plan = new InMemoryPlan(queueMetrics, policy, agentRight, clusterCapacity,
-        step, res, minAlloc, maxAlloc, "dedicated", null, true, context);
+    plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agentRight, clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated",
+        null, true, context);
   }
 
   private int initializeScenario1() throws PlanningException {

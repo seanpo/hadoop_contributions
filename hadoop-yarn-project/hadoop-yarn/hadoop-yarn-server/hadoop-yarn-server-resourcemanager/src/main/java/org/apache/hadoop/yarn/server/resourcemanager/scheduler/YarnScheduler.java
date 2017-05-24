@@ -43,6 +43,7 @@ import org.apache.hadoop.yarn.api.records.QueueUserACLInfo;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.event.EventHandler;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
@@ -181,6 +182,14 @@ public interface YarnScheduler extends EventHandler<SchedulerEvent> {
   @LimitedPrivate("yarn")
   @Evolving
   QueueMetrics getRootQueueMetrics();
+
+  /**
+   * Get the root queue {@link ReservationQueueMetrics} for the scheduler.
+   * @return the root queue {@link ReservationQueueMetrics} for the scheduler.
+   */
+  @LimitedPrivate("yarn")
+  @Evolving
+  ReservationQueueMetrics getRootQueueReservationMetrics();
 
   /**
    * Check if the user has permission to perform the operation.

@@ -62,6 +62,8 @@ public class TestNoOverCommitPolicy {
     String reservationQ =
         ReservationSystemTestUtil.getFullReservationQueueName();
     QueueMetrics rootQueueMetrics = mock(QueueMetrics.class);
+    ReservationQueueMetrics rootReservationQueueMetrics =
+        mock(ReservationQueueMetrics.class);
     Resource clusterResource =
         ReservationSystemTestUtil.calculateClusterResource(totCont);
     ReservationSchedulerConfiguration conf = mock
@@ -71,9 +73,9 @@ public class TestNoOverCommitPolicy {
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
     plan =
-        new InMemoryPlan(rootQueueMetrics, policy, mAgent,
-            clusterResource, step, res, minAlloc, maxAlloc,
-            "dedicated", null, true, context);
+        new InMemoryPlan(rootQueueMetrics, rootReservationQueueMetrics, policy,
+            mAgent, clusterResource, step, res, minAlloc, maxAlloc, "dedicated",
+            null, true, context);
   }
 
   public int[] generateData(int length, int val) {

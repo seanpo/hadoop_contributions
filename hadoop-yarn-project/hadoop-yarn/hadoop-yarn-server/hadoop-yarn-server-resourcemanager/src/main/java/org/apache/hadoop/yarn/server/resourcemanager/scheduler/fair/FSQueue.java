@@ -42,6 +42,7 @@ import org.apache.hadoop.yarn.security.AccessRequest;
 import org.apache.hadoop.yarn.security.PrivilegedEntity;
 import org.apache.hadoop.yarn.security.PrivilegedEntity.EntityType;
 import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceWeights;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerUtils;
@@ -63,6 +64,7 @@ public abstract class FSQueue implements Queue, Schedulable {
   private final YarnAuthorizationProvider authorizer;
   private final PrivilegedEntity queueEntity;
   private final FSQueueMetrics metrics;
+  private final ReservationQueueMetrics reservationQueueMetrics;
   
   protected final FSParentQueue parent;
   protected final RecordFactory recordFactory =
@@ -91,6 +93,8 @@ public abstract class FSQueue implements Queue, Schedulable {
         YarnAuthorizationProvider.getInstance(scheduler.getConf());
     this.queueEntity = new PrivilegedEntity(EntityType.QUEUE, name);
     this.metrics = FSQueueMetrics.forQueue(getName(), parent, true, scheduler.getConf());
+    this.reservationQueueMetrics =
+        ReservationQueueMetrics.forReservationQueue(getName(), parent);
     this.parent = parent;
     setPolicy(scheduler.getAllocationConfiguration().getSchedulingPolicy(name));
     reinit(false);
@@ -269,6 +273,11 @@ public abstract class FSQueue implements Queue, Schedulable {
   @Override
   public FSQueueMetrics getMetrics() {
     return metrics;
+  }
+
+  @Override
+  public ReservationQueueMetrics getReservationMetrics() {
+    return reservationQueueMetrics;
   }
 
   /** Get the fair share assigned to this Schedulable. */

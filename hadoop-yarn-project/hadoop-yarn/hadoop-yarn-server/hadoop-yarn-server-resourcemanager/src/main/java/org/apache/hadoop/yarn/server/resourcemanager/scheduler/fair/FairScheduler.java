@@ -54,6 +54,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.RMCriticalThreadUncaughtExceptionHandler;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationConstants;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.resource.ResourceWeights;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEvent;
@@ -169,6 +170,7 @@ public class FairScheduler extends
 
   // Aggregate metrics
   FSQueueMetrics rootMetrics;
+  ReservationQueueMetrics rootReservationMetrics;
   FSOpDurations fsOpDurations;
 
   private float reservableNodesRatio; // percentage of available nodes
@@ -1112,6 +1114,11 @@ public class FairScheduler extends
   }
 
   @Override
+  public ReservationQueueMetrics getRootQueueReservationMetrics() {
+    return rootReservationMetrics;
+  }
+
+  @Override
   public void handle(SchedulerEvent event) {
     switch (event.getType()) {
     case NODE_ADDED:
@@ -1307,6 +1314,8 @@ public class FairScheduler extends
       }
 
       rootMetrics = FSQueueMetrics.forQueue("root", null, true, conf);
+      rootReservationMetrics =
+          ReservationQueueMetrics.forReservationQueue("root", null);
       fsOpDurations = FSOpDurations.getInstance(true);
 
       // This stores per-application scheduling information

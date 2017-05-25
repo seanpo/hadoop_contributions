@@ -72,7 +72,7 @@ public final class ReservationQueueMetrics {
    * @param parent the parent of the {@link Queue} that the
    *               {@link ReservationQueueMetrics} are being gathered for.
    * @return the {@link ReservationQueueMetrics} for the queue represented
-   * by {@param queueName}.
+   * by the parameter queueName.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       String queueName, Queue parent) {
@@ -90,7 +90,7 @@ public final class ReservationQueueMetrics {
    * @param parent the parent of the {@link Queue} that the
    *               {@link ReservationQueueMetrics} are being gathered for.
    * @return the {@link ReservationQueueMetrics} for the queue represented
-   * by {@param queueName}.
+   * by the parameter queueName.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       MetricsSystem ms, String queueName, Queue parent) {

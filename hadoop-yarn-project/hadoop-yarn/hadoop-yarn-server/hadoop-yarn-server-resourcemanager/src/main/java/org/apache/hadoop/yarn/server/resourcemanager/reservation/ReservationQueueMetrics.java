@@ -66,6 +66,13 @@ public final class ReservationQueueMetrics {
    * queue. If an instance did not already exist, a new one will be created. The
    * {@link MetricsSystem} used to register these metrics is the singleton
    * {@link DefaultMetricsSystem#instance()}.
+   *
+   * @param queueName the name of the {@link Queue} that the
+   *                  {@link ReservationQueueMetrics} are being gathered for.
+   * @param parent the parent of the {@link Queue} that the
+   *               {@link ReservationQueueMetrics} are being gathered for.
+   * @return the {@link ReservationQueueMetrics} for the queue represented
+   * by {@param queueName}.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       String queueName, Queue parent) {
@@ -76,18 +83,28 @@ public final class ReservationQueueMetrics {
   /**
    * Gets the instance of {@link ReservationQueueMetrics} for a particular
    * queue. If an instance did not already exist, a new one will be created.
+   *
+   * @param ms the {@link MetricsSystem} used to register the queue metrics.
+   * @param queueName the name of the {@link Queue} that the
+   *                  {@link ReservationQueueMetrics} are being gathered for.
+   * @param parent the parent of the {@link Queue} that the
+   *               {@link ReservationQueueMetrics} are being gathered for.
+   * @return the {@link ReservationQueueMetrics} for the queue represented
+   * by {@param queueName}.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       MetricsSystem ms, String queueName, Queue parent) {
     ReservationQueueMetrics metrics = RESERVATION_METRICS.get(queueName);
     if (metrics == null) {
       metrics = new ReservationQueueMetrics(queueName, parent);
+      metrics.initialize();
 
       // Register with the MetricsSystems
       if (ms != null) {
         metrics = ms.register(sourceName(queueName).toString(),
             "Metrics for queue: " + queueName, metrics);
       }
+
       RESERVATION_METRICS.put(queueName, metrics);
     }
 
@@ -180,6 +197,10 @@ public final class ReservationQueueMetrics {
     if (!success) {
       planAddReservationFailureCount.incr();
     }
+    if (parent != null) {
+      parent.getReservationMetrics().setPlanAddReservationMetrics(latency,
+          success);
+    }
   }
 
   public void setPlanUpdateReservationMetrics(long latency, boolean success) {
@@ -187,6 +208,10 @@ public final class ReservationQueueMetrics {
     planUpdateReservationTotalCount.incr();
     if (!success) {
       planUpdateReservationFailureCount.incr();
+    }
+    if (parent != null) {
+      parent.getReservationMetrics().setPlanUpdateReservationMetrics(latency,
+          success);
     }
   }
 
@@ -196,23 +221,39 @@ public final class ReservationQueueMetrics {
     if (!success) {
       planDeleteReservationFailureCount.incr();
     }
+    if (parent != null) {
+      parent.getReservationMetrics().setPlanDeleteReservationMetrics(latency,
+          success);
+    }
   }
 
   public void setPlanFollowerSynchronizeMetrics(long latency) {
     planFollowerSynchronizeLatency.add(latency);
     planFollowerSynchronizeCount.incr();
+    if (parent != null) {
+      parent.getReservationMetrics().setPlanFollowerSynchronizeMetrics(latency);
+    }
   }
 
   public void setAgentCreateReservationMetrics(long latency) {
     reservationAgentCreateReservationLatency.add(latency);
+    if (parent != null) {
+      parent.getReservationMetrics().setAgentCreateReservationMetrics(latency);
+    }
   }
 
   public void setAgentUpdateReservationMetrics(long latency) {
     reservationAgentUpdateReservationLatency.add(latency);
+    if (parent != null) {
+      parent.getReservationMetrics().setAgentUpdateReservationMetrics(latency);
+    }
   }
 
   public void setAgentDeleteReservationMetrics(long latency) {
     reservationAgentDeleteReservationLatency.add(latency);
+    if (parent != null) {
+      parent.getReservationMetrics().setAgentDeleteReservationMetrics(latency);
+    }
   }
 
   protected static StringBuilder sourceName(String queueName) {

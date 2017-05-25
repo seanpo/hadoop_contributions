@@ -236,7 +236,8 @@ public class InMemoryPlan implements Plan {
               + inMemReservation.getReservationId()
               + " is not mapped to any user";
       LOG.error(errMsg);
-      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(),
+          false);
       throw new IllegalArgumentException(errMsg);
     }
 

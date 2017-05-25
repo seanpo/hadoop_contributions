@@ -101,8 +101,8 @@ public final class ReservationQueueMetrics {
 
       // Register with the MetricsSystems
       if (ms != null) {
-        metrics = ms.register(sourceName(queueName).toString(),
-            "Metrics for queue: " + queueName, metrics);
+        metrics = ms.register("ReservationQueue-" + sourceName(queueName)
+            .toString(), "Metrics for queue: " + queueName, metrics);
       }
 
       RESERVATION_METRICS.put(queueName, metrics);
@@ -146,15 +146,12 @@ public final class ReservationQueueMetrics {
   @Metric("Plan Follower Synchronize Count")
   private MutableCounterInt planFollowerSynchronizeCount;
 
-  private String queueName;
-
   private Queue parent;
 
   private static final MetricsInfo RECORD_INFO =
       info("ReservationQueueMetrics", "Reservation Metrics by Queue");
 
   private ReservationQueueMetrics(String queueName, Queue parent) {
-    this.queueName = queueName;
     this.parent = parent;
 
     registry = new MetricsRegistry(RECORD_INFO);
@@ -163,15 +160,15 @@ public final class ReservationQueueMetrics {
 
   private void initialize() {
     planAddReservationLatency =
-        registry.newQuantiles("ReservationAgentAddReservationLatency",
+        registry.newQuantiles("PlanAddReservationLatency",
             "Latency for create reservation", "ops", "latency", 5);
 
     planUpdateReservationLatency =
-        registry.newQuantiles("ReservationAgentUpdateReservationLatency",
+        registry.newQuantiles("PlanUpdateReservationLatency",
             "Latency for update reservation", "ops", "latency", 5);
 
     planDeleteReservationLatency =
-        registry.newQuantiles("ReservationAgentDeleteReservationLatency",
+        registry.newQuantiles("PlanDeleteReservationLatency",
             "Latency for remove reservation", "ops", "latency", 5);
 
     planFollowerSynchronizeLatency =

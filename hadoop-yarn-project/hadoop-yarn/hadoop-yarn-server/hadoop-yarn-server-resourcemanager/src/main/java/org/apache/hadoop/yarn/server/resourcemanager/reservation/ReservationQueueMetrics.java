@@ -41,7 +41,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
  */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")
-public final class ReservationQueueMetrics {
+public class ReservationQueueMetrics {
 
   static final Splitter Q_SPLITTER =
       Splitter.on('.').omitEmptyStrings().trimResults();

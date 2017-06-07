@@ -48,8 +48,8 @@ public interface Queue {
   QueueMetrics getMetrics();
 
   /**
-   * Get the queue reservation metrics
-   * @return the queue reservation metrics
+   * Get the queue reservation metrics.
+   * @return the queue reservation metrics.
    */
   ReservationQueueMetrics getReservationMetrics();
 

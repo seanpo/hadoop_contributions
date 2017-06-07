@@ -273,7 +273,8 @@ public class InMemoryPlan implements Plan {
       if (!reservations.add(inMemReservation)) {
         LOG.error("Unable to add reservation: {} to plan.",
             inMemReservation.getReservationId());
-        reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+        reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(),
+            false);
         return false;
       }
       currentReservations.put(searchInterval, reservations);
@@ -282,10 +283,12 @@ public class InMemoryPlan implements Plan {
       incrementAllocation(inMemReservation);
       LOG.info("Successfully added reservation: {} to plan.",
           inMemReservation.getReservationId());
-      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), true);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(),
+          true);
       return true;
     } catch (Exception e) {
-      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanAddReservationMetrics(stopWatch.now(),
+          false);
       throw e;
     } finally {
       writeLock.unlock();
@@ -336,7 +339,8 @@ public class InMemoryPlan implements Plan {
       }
     } finally {
       writeLock.unlock();
-      reservationQueueMetrics.setPlanUpdateReservationMetrics(stopWatch.now(), result);
+      reservationQueueMetrics.setPlanUpdateReservationMetrics(stopWatch.now(),
+          result);
     }
   }
 
@@ -389,10 +393,12 @@ public class InMemoryPlan implements Plan {
         throw new IllegalArgumentException(errMsg);
       }
       boolean result = removeReservation(reservation);
-      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), result);
+      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(),
+          result);
       return result;
     } catch (Exception e){
-      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(), false);
+      reservationQueueMetrics.setPlanDeleteReservationMetrics(stopWatch.now(),
+          false);
       throw e;
     } finally {
       writeLock.unlock();

@@ -170,7 +170,7 @@ public class FairScheduler extends
 
   // Aggregate metrics
   FSQueueMetrics rootMetrics;
-  ReservationQueueMetrics rootReservationMetrics;
+  private ReservationQueueMetrics rootReservationMetrics;
   FSOpDurations fsOpDurations;
 
   private float reservableNodesRatio; // percentage of available nodes

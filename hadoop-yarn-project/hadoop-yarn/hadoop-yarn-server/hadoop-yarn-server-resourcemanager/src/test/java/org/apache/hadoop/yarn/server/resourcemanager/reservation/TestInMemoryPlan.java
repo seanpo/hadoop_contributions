@@ -98,8 +98,9 @@ public class TestInMemoryPlan {
   @Test
   public void testAddReservation() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = { 10, 10, 10, 10, 10, 10 };
@@ -131,8 +132,9 @@ public class TestInMemoryPlan {
   @Test
   public void testAddEmptyReservation() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {};
@@ -151,8 +153,9 @@ public class TestInMemoryPlan {
   public void testAddReservationAlreadyExists() {
     // First add a reservation
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = { 10, 10, 10, 10, 10, 10 };
@@ -183,8 +186,9 @@ public class TestInMemoryPlan {
   @Test
   public void testUpdateReservation() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
         ReservationSystemTestUtil.getNewReservationId();
     // First add a reservation
@@ -238,8 +242,9 @@ public class TestInMemoryPlan {
   @Test
   public void testUpdateNonExistingReservation() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
         ReservationSystemTestUtil.getNewReservationId();
     // Try to update a reservation without adding
@@ -263,8 +268,9 @@ public class TestInMemoryPlan {
   public void testDeleteReservation() {
     // First add a reservation
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
         ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = { 10, 10, 10, 10, 10, 10 };
@@ -311,8 +317,9 @@ public class TestInMemoryPlan {
   @Test
   public void testDeleteNonExistingReservation() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID =
         ReservationSystemTestUtil.getNewReservationId();
     // Try to delete a reservation without adding
@@ -331,8 +338,9 @@ public class TestInMemoryPlan {
   @Test
   public void testArchiveCompletedReservations() {
     Plan plan =
-        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-            resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+        new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent,
+            totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName, replanner,
+            true, context);
     ReservationId reservationID1 =
         ReservationSystemTestUtil.getNewReservationId();
     // First add a reservation
@@ -413,9 +421,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsById() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {10, 10, 10, 10, 10, 10};
@@ -447,9 +455,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsByInvalidId() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {10, 10, 10, 10, 10, 10};
@@ -473,9 +481,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsByTimeInterval() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {10, 10, 10, 10, 10, 10};
@@ -534,9 +542,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsAtTime() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {10, 10, 10, 10, 10, 10};
@@ -559,9 +567,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsWithNoInput() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     ReservationId reservationID =
             ReservationSystemTestUtil.getNewReservationId();
     int[] alloc = {10, 10, 10, 10, 10, 10};
@@ -586,9 +594,9 @@ public class TestInMemoryPlan {
 
   @Test
   public void testGetReservationsWithNoReservation() {
-    Plan plan =
-            new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy, agent, totalCapacity, 1L,
-                    resCalc, minAlloc, maxAlloc, planName, replanner, true, context);
+    Plan plan = new InMemoryPlan(queueMetrics, reservationQueueMetrics, policy,
+        agent, totalCapacity, 1L, resCalc, minAlloc, maxAlloc, planName,
+        replanner, true, context);
     // Verify that get reservation returns no entries if no queries are made.
 
     ReservationInterval interval = new ReservationInterval(0, Long.MAX_VALUE);
@@ -658,8 +666,7 @@ public class TestInMemoryPlan {
     Map<ReservationInterval, Resource> allocs =
             ReservationSystemUtil.toResources(allocations);
     return new InMemoryReservationAllocation(reservationID, rDef, user,
-            planName,
-                    start, start + alloc.length, allocs, resCalc, minAlloc);
+        planName, start, start + alloc.length, allocs, resCalc, minAlloc);
   }
 
 }

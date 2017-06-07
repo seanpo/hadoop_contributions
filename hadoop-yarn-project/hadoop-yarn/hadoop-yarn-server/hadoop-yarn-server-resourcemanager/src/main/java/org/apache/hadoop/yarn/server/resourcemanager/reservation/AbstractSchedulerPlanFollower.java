@@ -118,8 +118,7 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
         shouldResize = true;
       }
     }
-    // identify the reservations that have expired and new reservations that
-    // have to be activated
+    // identify expired as well as new reservations that have to be activated
     List<? extends Queue> resQueues = getChildReservationQueues(planQueue);
     Set<String> expired = new HashSet<String>();
     for (Queue resQueue : resQueues) {

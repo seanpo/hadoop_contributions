@@ -82,7 +82,7 @@ public abstract class AbstractCSQueue implements CSQueue {
   volatile Resource maximumAllocation;
   private volatile QueueState state = null;
   final CSQueueMetrics metrics;
-  final ReservationQueueMetrics reservationQueueMetrics;
+  private final ReservationQueueMetrics reservationQueueMetrics;
   protected final PrivilegedEntity queueEntity;
 
   final ResourceCalculator resourceCalculator;

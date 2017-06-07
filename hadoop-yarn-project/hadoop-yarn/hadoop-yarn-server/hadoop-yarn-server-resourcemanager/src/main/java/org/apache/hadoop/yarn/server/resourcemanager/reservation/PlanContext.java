@@ -110,17 +110,17 @@ public interface PlanContext {
 
   /**
    * Return the {@link ReservationQueueMetrics} for for the queue in the
-   * {@link ResourceScheduler} corresponding to this plan
+   * {@link ResourceScheduler} corresponding to this plan.
    *
    * @return the {@link ReservationQueueMetrics} for the queue in the
    *         {@link ResourceScheduler} corresponding to this plan
    */
-  public ReservationQueueMetrics getReservationQueueMetrics();
+  ReservationQueueMetrics getReservationQueueMetrics();
 
   /**
    * Instructs the {@link PlanFollower} on what to do for applications
    * which are still running when the reservation is expiring (move-to-default
-   * vs kill)
+   * vs kill).
    * 
    * @return true if remaining applications have to be killed, false if they
    *         have to migrated

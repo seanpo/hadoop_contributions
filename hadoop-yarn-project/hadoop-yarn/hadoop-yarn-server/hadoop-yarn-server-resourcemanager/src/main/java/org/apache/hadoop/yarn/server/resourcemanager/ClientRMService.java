@@ -50,6 +50,7 @@ import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod;
 import org.apache.hadoop.security.authorize.PolicyProvider;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.service.AbstractService;
+import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.ApplicationsRequestScope;
@@ -1250,9 +1251,12 @@ public class ClientRMService extends AbstractService implements
             AuditConstants.SUBMIT_RESERVATION_REQUEST, null);
     try {
       // Try to place the reservation using the agent
-      boolean result =
-          plan.getReservationAgent().createReservation(reservationId, user,
-              plan, request.getReservationDefinition());
+      StopWatch stopWatch = new StopWatch();
+      stopWatch.start();
+      boolean result = plan.getReservationAgent().createReservation(
+          reservationId, user, plan, request.getReservationDefinition());
+      plan.getReservationQueueMetrics()
+          .setAgentCreateReservationMetrics(stopWatch.now());
       if (result) {
         // add the reservation id to valid ones maintained by reservation
         // system
@@ -1291,9 +1295,12 @@ public class ClientRMService extends AbstractService implements
             AuditConstants.UPDATE_RESERVATION_REQUEST, reservationId);
     // Try to update the reservation using default agent
     try {
-      boolean result =
-          plan.getReservationAgent().updateReservation(reservationId, user,
-              plan, request.getReservationDefinition());
+      StopWatch stopWatch = new StopWatch();
+      stopWatch.start();
+      boolean result = plan.getReservationAgent().updateReservation(
+          reservationId, user, plan, request.getReservationDefinition());
+      plan.getReservationQueueMetrics()
+          .setAgentUpdateReservationMetrics(stopWatch.now());
       if (!result) {
         String errMsg = "Unable to update reservation: " + reservationId;
         RMAuditLogger.logFailure(user,
@@ -1330,9 +1337,12 @@ public class ClientRMService extends AbstractService implements
             AuditConstants.DELETE_RESERVATION_REQUEST, reservationId);
     // Try to update the reservation using default agent
     try {
-      boolean result =
-          plan.getReservationAgent().deleteReservation(reservationId, user,
-              plan);
+      StopWatch stopWatch = new StopWatch();
+      stopWatch.start();
+      boolean result = plan.getReservationAgent()
+          .deleteReservation(reservationId, user, plan);
+      plan.getReservationQueueMetrics()
+          .setAgentDeleteReservationMetrics(stopWatch.now());
       if (!result) {
         String errMsg = "Could not delete reservation: " + reservationId;
         RMAuditLogger.logFailure(user,

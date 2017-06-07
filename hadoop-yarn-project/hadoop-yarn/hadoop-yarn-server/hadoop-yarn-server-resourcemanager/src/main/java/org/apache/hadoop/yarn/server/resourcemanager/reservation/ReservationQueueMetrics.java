@@ -37,7 +37,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
 
 /**
  * {@link ReservationQueueMetrics} is used to collect metrics for the
- * {@link ReservationSystem} and its constituent components. The
+ * {@link ReservationSystem} and its constituent components.
  */
 @InterfaceAudience.Private
 @Metrics(context = "yarn")
@@ -52,13 +52,13 @@ public class ReservationQueueMetrics {
    */
   @InterfaceAudience.Private
   public synchronized static void clearReservationMetrics() {
-    RESERVATION_METRICS.clear();
+    RES_METRICS.clear();
   }
 
   /**
    * Simple metrics cache to help prevent re-registrations.
    */
-  private static final Map<String, ReservationQueueMetrics> RESERVATION_METRICS =
+  private static final Map<String, ReservationQueueMetrics> RES_METRICS =
       new HashMap<>();
 
   /**
@@ -94,7 +94,7 @@ public class ReservationQueueMetrics {
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       MetricsSystem ms, String queueName, Queue parent) {
-    ReservationQueueMetrics metrics = RESERVATION_METRICS.get(queueName);
+    ReservationQueueMetrics metrics = RES_METRICS.get(queueName);
     if (metrics == null) {
       metrics = new ReservationQueueMetrics(queueName, parent);
       metrics.initialize();
@@ -105,7 +105,7 @@ public class ReservationQueueMetrics {
             .toString(), "Metrics for queue: " + queueName, metrics);
       }
 
-      RESERVATION_METRICS.put(queueName, metrics);
+      RES_METRICS.put(queueName, metrics);
     }
 
     return metrics;
@@ -161,15 +161,15 @@ public class ReservationQueueMetrics {
   private void initialize() {
     planAddReservationLatency =
         registry.newQuantiles("PlanAddReservationLatency",
-            "Latency for create reservation", "ops", "latency", 5);
+            "Latency for create reservation", "ops", "latency", 60);
 
     planUpdateReservationLatency =
         registry.newQuantiles("PlanUpdateReservationLatency",
-            "Latency for update reservation", "ops", "latency", 5);
+            "Latency for update reservation", "ops", "latency", 60);
 
     planDeleteReservationLatency =
         registry.newQuantiles("PlanDeleteReservationLatency",
-            "Latency for remove reservation", "ops", "latency", 5);
+            "Latency for remove reservation", "ops", "latency", 60);
 
     planFollowerSynchronizeLatency =
         registry.newQuantiles("PlanFollowerSynchronizeLatency",
@@ -177,15 +177,15 @@ public class ReservationQueueMetrics {
 
     reservationAgentCreateReservationLatency =
         registry.newQuantiles("ReservationAgentCreateReservationLatency",
-            "Latency for create reservation", "ops", "latency", 5);
+            "Latency for create reservation", "ops", "latency", 60);
 
     reservationAgentUpdateReservationLatency =
         registry.newQuantiles("ReservationAgentUpdateReservationLatency",
-            "Latency for update reservation", "ops", "latency", 5);
+            "Latency for update reservation", "ops", "latency", 60);
 
     reservationAgentDeleteReservationLatency =
         registry.newQuantiles("ReservationAgentDeleteReservationLatency",
-            "Latency for delete reservation", "ops", "latency", 5);
+            "Latency for delete reservation", "ops", "latency", 60);
   }
 
   public void setPlanAddReservationMetrics(long latency, boolean success) {

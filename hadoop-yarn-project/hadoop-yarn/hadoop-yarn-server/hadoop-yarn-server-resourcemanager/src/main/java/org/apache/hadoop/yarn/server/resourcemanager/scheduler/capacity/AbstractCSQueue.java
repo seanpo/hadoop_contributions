@@ -53,7 +53,6 @@ import org.apache.hadoop.yarn.security.PrivilegedEntity;
 import org.apache.hadoop.yarn.security.PrivilegedEntity.EntityType;
 import org.apache.hadoop.yarn.security.YarnAuthorizationProvider;
 import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.activities.ActivitiesManager;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceLimits;
@@ -82,7 +81,6 @@ public abstract class AbstractCSQueue implements CSQueue {
   volatile Resource maximumAllocation;
   private volatile QueueState state = null;
   final CSQueueMetrics metrics;
-  private final ReservationQueueMetrics reservationQueueMetrics;
   protected final PrivilegedEntity queueEntity;
 
   final ResourceCalculator resourceCalculator;
@@ -128,9 +126,6 @@ public abstract class AbstractCSQueue implements CSQueue {
         old != null ? (CSQueueMetrics) old.getMetrics() : CSQueueMetrics
             .forQueue(getQueuePath(), parent, cs.getConfiguration()
                 .getEnableUserMetrics(), cs.getConf());
-    this.reservationQueueMetrics = old != null
-        ? (ReservationQueueMetrics) old.getReservationMetrics()
-        : ReservationQueueMetrics.forReservationQueue(getQueuePath(), parent);
 
     this.csContext = cs;
     this.minimumAllocation = csContext.getMinimumResourceCapability();
@@ -202,11 +197,6 @@ public abstract class AbstractCSQueue implements CSQueue {
   @Override
   public CSQueueMetrics getMetrics() {
     return metrics;
-  }
-
-  @Override
-  public ReservationQueueMetrics getReservationMetrics() {
-    return reservationQueueMetrics;
   }
 
   @Override

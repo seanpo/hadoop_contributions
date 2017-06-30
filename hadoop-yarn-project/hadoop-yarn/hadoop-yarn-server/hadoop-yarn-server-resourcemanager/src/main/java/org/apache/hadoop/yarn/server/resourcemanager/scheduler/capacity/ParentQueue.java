@@ -39,6 +39,7 @@ import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.AccessType;
 import org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerState;
@@ -80,6 +81,7 @@ public class ParentQueue extends AbstractCSQueue {
   private final boolean rootQueue;
   private volatile int numApplications;
   private final CapacitySchedulerContext scheduler;
+  private final ReservationQueueMetrics reservationQueueMetrics;
 
   private final RecordFactory recordFactory = 
     RecordFactoryProvider.getRecordFactory(null);
@@ -104,6 +106,9 @@ public class ParentQueue extends AbstractCSQueue {
     this.childQueues = new ArrayList<>();
 
     setupQueueConfigs(cs.getClusterResource());
+    this.reservationQueueMetrics = old != null
+        ? (ReservationQueueMetrics) old.getReservationMetrics()
+        : ReservationQueueMetrics.forReservationQueue(getQueuePath(), parent);
 
     LOG.info("Initialized parent-queue " + queueName +
         " name=" + queueName +

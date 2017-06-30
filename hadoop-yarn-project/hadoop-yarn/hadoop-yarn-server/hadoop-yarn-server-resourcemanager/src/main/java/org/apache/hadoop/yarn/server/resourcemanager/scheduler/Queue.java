@@ -29,7 +29,6 @@ import org.apache.hadoop.yarn.api.records.QueueACL;
 import org.apache.hadoop.yarn.api.records.QueueInfo;
 import org.apache.hadoop.yarn.api.records.QueueUserACLInfo;
 import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 
 @Evolving
@@ -46,12 +45,6 @@ public interface Queue {
    * @return the queue metrics
    */
   QueueMetrics getMetrics();
-
-  /**
-   * Get the queue reservation metrics.
-   * @return the queue reservation metrics.
-   */
-  ReservationQueueMetrics getReservationMetrics();
 
   /**
    * Get queue information

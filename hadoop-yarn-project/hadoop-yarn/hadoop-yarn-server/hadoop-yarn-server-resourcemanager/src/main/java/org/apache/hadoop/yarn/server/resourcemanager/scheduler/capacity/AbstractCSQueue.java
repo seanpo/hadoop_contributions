@@ -198,7 +198,7 @@ public abstract class AbstractCSQueue implements CSQueue {
   public CSQueueMetrics getMetrics() {
     return metrics;
   }
-
+  
   @Override
   public String getQueueName() {
     return queueName;

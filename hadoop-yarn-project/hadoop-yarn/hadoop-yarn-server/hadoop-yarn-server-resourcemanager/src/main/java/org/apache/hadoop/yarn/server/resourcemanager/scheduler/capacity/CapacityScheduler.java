@@ -243,8 +243,14 @@ public class CapacityScheduler extends
   }
 
   @Override
-  public ReservationQueueMetrics getRootQueueReservationMetrics() {
-    return getRootQueue().getReservationMetrics();
+  public ReservationQueueMetrics getRootReservationQueueMetrics() {
+    CSQueue rootQueue = getRootQueue();
+    if (rootQueue instanceof ParentQueue) {
+      return ((ParentQueue) rootQueue).getReservationMetrics();
+    }
+    LOG.info("ReservationQueueMetrics for root queue is null for queue=" +
+        rootQueue.getQueueName() + ".");
+    return null;
   }
 
   public CSQueue getRootQueue() {

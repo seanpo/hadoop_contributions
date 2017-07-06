@@ -410,7 +410,7 @@ public abstract class AbstractReservationSystem extends AbstractService
     ResourceCalculator rescCalc = getResourceCalculator();
     Resource totCap = getPlanQueueCapacity(planQueueName);
     Plan plan = new InMemoryPlan(getRootQueueMetrics(),
-        getRootQueueReservationMetrics(), adPolicy, getAgent(planQueuePath),
+        getRootReservationQueueMetrics(), adPolicy, getAgent(planQueuePath),
         totCap, planStepSize, rescCalc, minAllocation, maxAllocation,
         planQueueName, getReplanner(planQueuePath),
         getReservationSchedulerConfiguration().getMoveOnExpiry(planQueuePath),
@@ -508,5 +508,5 @@ public abstract class AbstractReservationSystem extends AbstractService
 
   protected abstract QueueMetrics getRootQueueMetrics();
 
-  protected abstract ReservationQueueMetrics getRootQueueReservationMetrics();
+  protected abstract ReservationQueueMetrics getRootReservationQueueMetrics();
 }

@@ -189,7 +189,7 @@ public interface YarnScheduler extends EventHandler<SchedulerEvent> {
    */
   @LimitedPrivate("yarn")
   @Evolving
-  ReservationQueueMetrics getRootQueueReservationMetrics();
+  ReservationQueueMetrics getRootReservationQueueMetrics();
 
   /**
    * Check if the user has permission to perform the operation.

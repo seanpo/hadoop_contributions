@@ -149,6 +149,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.Plan;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationAllocation;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInputValidator;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationInterval;
+import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationQueueMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystem;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.ReservationSystemUtil;
 import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.PlanningException;
@@ -1255,8 +1256,8 @@ public class ClientRMService extends AbstractService implements
       stopWatch.start();
       boolean result = plan.getReservationAgent().createReservation(
           reservationId, user, plan, request.getReservationDefinition());
-      plan.getReservationQueueMetrics()
-          .setAgentCreateReservationMetrics(stopWatch.now());
+      ReservationQueueMetrics.setAgentCreateReservationMetrics(
+          plan.getReservationQueueMetrics(), stopWatch.now());
       if (result) {
         // add the reservation id to valid ones maintained by reservation
         // system
@@ -1299,8 +1300,8 @@ public class ClientRMService extends AbstractService implements
       stopWatch.start();
       boolean result = plan.getReservationAgent().updateReservation(
           reservationId, user, plan, request.getReservationDefinition());
-      plan.getReservationQueueMetrics()
-          .setAgentUpdateReservationMetrics(stopWatch.now());
+      ReservationQueueMetrics.setAgentUpdateReservationMetrics(
+          plan.getReservationQueueMetrics(), stopWatch.now());
       if (!result) {
         String errMsg = "Unable to update reservation: " + reservationId;
         RMAuditLogger.logFailure(user,
@@ -1341,8 +1342,8 @@ public class ClientRMService extends AbstractService implements
       stopWatch.start();
       boolean result = plan.getReservationAgent()
           .deleteReservation(reservationId, user, plan);
-      plan.getReservationQueueMetrics()
-          .setAgentDeleteReservationMetrics(stopWatch.now());
+      ReservationQueueMetrics.setAgentDeleteReservationMetrics(
+          plan.getReservationQueueMetrics(), stopWatch.now());
       if (!result) {
         String errMsg = "Could not delete reservation: " + reservationId;
         RMAuditLogger.logFailure(user,

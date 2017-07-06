@@ -60,7 +60,7 @@ public abstract class TestSchedulerPlanFollowerBase {
     // Initialize plan based on move flag
     plan =
         new InMemoryPlan(scheduler.getRootQueueMetrics(),
-            scheduler.getRootQueueReservationMetrics(), policy, mAgent,
+            scheduler.getRootReservationQueueMetrics(), policy, mAgent,
             scheduler.getClusterResource(), 1L, res,
             scheduler.getMinimumResourceCapability(), maxAlloc, "dedicated",
             null, isMove, context);

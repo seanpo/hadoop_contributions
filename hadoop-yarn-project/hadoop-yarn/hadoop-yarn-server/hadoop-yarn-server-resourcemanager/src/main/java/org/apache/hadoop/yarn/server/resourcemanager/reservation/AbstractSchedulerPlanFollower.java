@@ -27,6 +27,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.reservation.exceptions.Plan
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.YarnScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.ParentQueue;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.QueueEntitlement;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.resource.ResourceCalculator;
@@ -215,8 +216,8 @@ public abstract class AbstractSchedulerPlanFollower implements PlanFollower {
     } catch (PlanningException e) {
       LOG.error("Exception in archiving completed reservations: ", e);
     }
-    planQueue.getReservationMetrics()
-        .setPlanFollowerSynchronizeMetrics(stopWatch.now());
+    ReservationQueueMetrics.setPlanFollowerSynchronizeMetrics(
+        ((ParentQueue) planQueue).getReservationMetrics(), stopWatch.now());
     LOG.info("Finished iteration of plan follower edit policy for plan: "
         + planQueueName);
     // Extension: update plan with app states, to support smart replanning.

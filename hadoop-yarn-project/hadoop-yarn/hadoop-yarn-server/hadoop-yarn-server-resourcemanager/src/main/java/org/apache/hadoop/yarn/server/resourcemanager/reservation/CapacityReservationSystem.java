@@ -86,8 +86,8 @@ public class CapacityReservationSystem extends AbstractReservationSystem {
   }
 
   @Override
-  protected ReservationQueueMetrics getRootQueueReservationMetrics() {
-    return capScheduler.getRootQueueReservationMetrics();
+  protected ReservationQueueMetrics getRootReservationQueueMetrics() {
+    return capScheduler.getRootReservationQueueMetrics();
   }
 
   @Override

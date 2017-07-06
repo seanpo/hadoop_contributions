@@ -735,7 +735,7 @@ public class TestGreedyReservationAgent {
     RMContext context = ReservationSystemTestUtil.createMockRMContext();
 
     plan = new InMemoryPlan(scheduler.getRootQueueMetrics(),
-        scheduler.getRootQueueReservationMetrics(), policy, agent,
+        scheduler.getRootReservationQueueMetrics(), policy, agent,
         clusterCapacity, step, res, minAlloc, maxAlloc, "dedicated", null, true,
         context);
 

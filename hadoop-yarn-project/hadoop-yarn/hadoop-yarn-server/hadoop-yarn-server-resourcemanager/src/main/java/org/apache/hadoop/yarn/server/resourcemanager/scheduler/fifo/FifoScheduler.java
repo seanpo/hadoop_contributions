@@ -136,11 +136,6 @@ public class FifoScheduler extends
     }
 
     @Override
-    public ReservationQueueMetrics getReservationMetrics() {
-      return reservationMetrics;
-    }
-
-    @Override
     public QueueInfo getQueueInfo( 
         boolean includeChildQueues, boolean recursive) {
       QueueInfo queueInfo = recordFactory.newRecordInstance(QueueInfo.class);
@@ -921,8 +916,8 @@ public class FifoScheduler extends
   }
 
   @Override
-  public ReservationQueueMetrics getRootQueueReservationMetrics() {
-    return DEFAULT_QUEUE.getReservationMetrics();
+  public ReservationQueueMetrics getRootReservationQueueMetrics() {
+    return null;
   }
 
   @Override

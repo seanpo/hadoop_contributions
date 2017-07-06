@@ -1114,7 +1114,7 @@ public class FairScheduler extends
   }
 
   @Override
-  public ReservationQueueMetrics getRootQueueReservationMetrics() {
+  public ReservationQueueMetrics getRootReservationQueueMetrics() {
     return rootReservationMetrics;
   }
 

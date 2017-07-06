@@ -106,9 +106,13 @@ public class ParentQueue extends AbstractCSQueue {
     this.childQueues = new ArrayList<>();
 
     setupQueueConfigs(cs.getClusterResource());
-    this.reservationQueueMetrics = old != null
-        ? (ReservationQueueMetrics) old.getReservationMetrics()
-        : ReservationQueueMetrics.forReservationQueue(getQueuePath(), parent);
+    if (old != null && old instanceof ParentQueue) {
+      this.reservationQueueMetrics =
+          ((ParentQueue) old).getReservationMetrics();
+    } else {
+      this.reservationQueueMetrics =
+          ReservationQueueMetrics.forReservationQueue(getQueuePath(), parent);
+    }
 
     LOG.info("Initialized parent-queue " + queueName +
         " name=" + queueName +
@@ -1057,6 +1061,10 @@ public class ParentQueue extends AbstractCSQueue {
     if (parent != null) {
       parent.apply(cluster, request);
     }
+  }
+
+  public ReservationQueueMetrics getReservationMetrics() {
+    return reservationQueueMetrics;
   }
 
   @Override

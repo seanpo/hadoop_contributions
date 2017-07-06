@@ -34,6 +34,7 @@ import org.apache.hadoop.metrics2.lib.MetricsRegistry;
 import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableQuantiles;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.Queue;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.ParentQueue;
 
 /**
  * {@link ReservationQueueMetrics} is used to collect metrics for the
@@ -68,11 +69,11 @@ public class ReservationQueueMetrics {
    * {@link DefaultMetricsSystem#instance()}.
    *
    * @param queueName the name of the {@link Queue} that the
-   *                  {@link ReservationQueueMetrics} are being gathered for.
+   *          {@link ReservationQueueMetrics} are being gathered for.
    * @param parent the parent of the {@link Queue} that the
-   *               {@link ReservationQueueMetrics} are being gathered for.
-   * @return the {@link ReservationQueueMetrics} for the queue represented
-   * by the parameter queueName.
+   *          {@link ReservationQueueMetrics} are being gathered for.
+   * @return the {@link ReservationQueueMetrics} for the queue represented by
+   *         the parameter queueName.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       String queueName, Queue parent) {
@@ -86,11 +87,11 @@ public class ReservationQueueMetrics {
    *
    * @param ms the {@link MetricsSystem} used to register the queue metrics.
    * @param queueName the name of the {@link Queue} that the
-   *                  {@link ReservationQueueMetrics} are being gathered for.
+   *          {@link ReservationQueueMetrics} are being gathered for.
    * @param parent the parent of the {@link Queue} that the
-   *               {@link ReservationQueueMetrics} are being gathered for.
-   * @return the {@link ReservationQueueMetrics} for the queue represented
-   * by the parameter queueName.
+   *          {@link ReservationQueueMetrics} are being gathered for.
+   * @return the {@link ReservationQueueMetrics} for the queue represented by
+   *         the parameter queueName.
    */
   public synchronized static ReservationQueueMetrics forReservationQueue(
       MetricsSystem ms, String queueName, Queue parent) {
@@ -101,8 +102,9 @@ public class ReservationQueueMetrics {
 
       // Register with the MetricsSystems
       if (ms != null) {
-        metrics = ms.register("ReservationQueue-" + sourceName(queueName)
-            .toString(), "Metrics for queue: " + queueName, metrics);
+        metrics =
+            ms.register("ReservationQueue-" + sourceName(queueName).toString(),
+                "Metrics for queue: " + queueName, metrics);
       }
 
       RES_METRICS.put(queueName, metrics);
@@ -146,13 +148,14 @@ public class ReservationQueueMetrics {
   @Metric("Plan Follower Synchronize Count")
   private MutableCounterInt planFollowerSynchronizeCount;
 
-  private Queue parent;
+  private ParentQueue parent;
 
   private static final MetricsInfo RECORD_INFO =
       info("ReservationQueueMetrics", "Reservation Metrics by Queue");
 
   private ReservationQueueMetrics(String queueName, Queue parent) {
-    this.parent = parent;
+    this.parent = parent == null || !(parent instanceof ParentQueue) ? null
+        : (ParentQueue) parent;
 
     registry = new MetricsRegistry(RECORD_INFO);
     registry.tag(RECORD_INFO, "ReservationMetricsFor" + queueName);
@@ -188,7 +191,14 @@ public class ReservationQueueMetrics {
             "Latency for delete reservation", "ops", "latency", 60);
   }
 
-  public void setPlanAddReservationMetrics(long latency, boolean success) {
+  public static void setPlanAddReservationMetrics(ReservationQueueMetrics metrics,
+      long latency, boolean success) {
+    if (metrics != null) {
+      metrics.setPlanAddReservationMetrics(latency, success);
+    }
+  }
+
+  private void setPlanAddReservationMetrics(long latency, boolean success) {
     planAddReservationLatency.add(latency);
     planAddReservationTotalCount.incr();
     if (!success) {
@@ -200,7 +210,14 @@ public class ReservationQueueMetrics {
     }
   }
 
-  public void setPlanUpdateReservationMetrics(long latency, boolean success) {
+  public static void setPlanUpdateReservationMetrics(ReservationQueueMetrics metrics,
+      long latency, boolean success) {
+    if (metrics != null) {
+      metrics.setPlanUpdateReservationMetrics(latency, success);
+    }
+  }
+
+  private void setPlanUpdateReservationMetrics(long latency, boolean success) {
     planUpdateReservationLatency.add(latency);
     planUpdateReservationTotalCount.incr();
     if (!success) {
@@ -212,7 +229,14 @@ public class ReservationQueueMetrics {
     }
   }
 
-  public void setPlanDeleteReservationMetrics(long latency, boolean success) {
+  public static void setPlanDeleteReservationMetrics(ReservationQueueMetrics metrics,
+      long latency, boolean success) {
+    if (metrics != null) {
+      metrics.setPlanDeleteReservationMetrics(latency, success);
+    }
+  }
+
+  private void setPlanDeleteReservationMetrics(long latency, boolean success) {
     planDeleteReservationLatency.add(latency);
     planDeleteReservationTotalCount.incr();
     if (!success) {
@@ -224,7 +248,14 @@ public class ReservationQueueMetrics {
     }
   }
 
-  public void setPlanFollowerSynchronizeMetrics(long latency) {
+  public static void setPlanFollowerSynchronizeMetrics(ReservationQueueMetrics metrics,
+      long latency) {
+    if (metrics != null) {
+      metrics.setPlanFollowerSynchronizeMetrics(latency);
+    }
+  }
+
+  private void setPlanFollowerSynchronizeMetrics(long latency) {
     planFollowerSynchronizeLatency.add(latency);
     planFollowerSynchronizeCount.incr();
     if (parent != null) {
@@ -232,21 +263,42 @@ public class ReservationQueueMetrics {
     }
   }
 
-  public void setAgentCreateReservationMetrics(long latency) {
+  public static void setAgentCreateReservationMetrics(ReservationQueueMetrics metrics,
+      long latency) {
+    if (metrics != null) {
+      metrics.setAgentCreateReservationMetrics(latency);
+    }
+  }
+
+  private void setAgentCreateReservationMetrics(long latency) {
     reservationAgentCreateReservationLatency.add(latency);
     if (parent != null) {
       parent.getReservationMetrics().setAgentCreateReservationMetrics(latency);
     }
   }
 
-  public void setAgentUpdateReservationMetrics(long latency) {
+  public static void setAgentUpdateReservationMetrics(ReservationQueueMetrics metrics,
+      long latency) {
+    if (metrics != null) {
+      metrics.setAgentUpdateReservationMetrics(latency);
+    }
+  }
+
+  private void setAgentUpdateReservationMetrics(long latency) {
     reservationAgentUpdateReservationLatency.add(latency);
     if (parent != null) {
       parent.getReservationMetrics().setAgentUpdateReservationMetrics(latency);
     }
   }
 
-  public void setAgentDeleteReservationMetrics(long latency) {
+  public static void setAgentDeleteReservationMetrics(ReservationQueueMetrics metrics,
+      long latency) {
+    if (metrics != null) {
+      metrics.setAgentDeleteReservationMetrics(latency);
+    }
+  }
+
+  private void setAgentDeleteReservationMetrics(long latency) {
     reservationAgentDeleteReservationLatency.add(latency);
     if (parent != null) {
       parent.getReservationMetrics().setAgentDeleteReservationMetrics(latency);
